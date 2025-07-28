@@ -1,0 +1,225 @@
+\section{Properties of the R2D2M2 prior}
+\label{sec:Properties}
+In this section, we derive several mathematical properties of the R2D2M2 prior. We begin by presenting the marginal prior distributions of the overall and varying coefficients. We show how the behavior around the origin and the tails of the marginal densities can be controlled by the hyperparameters $\mu_{R^2}, \varphi_{R^2}, a_\pi$. The distinct behaviors induced by hyperparameter choices can be exploited by the user to represent their prior knowledge and desired degree of regularization.
+
+We then present the conditional posterior distributions of the overall and varying coefficients. Specifically, based on their conditional posterior means, we introduce shrinkage factors that allow us to calculate the effective number of coefficients and give further guidelines on how to choose the hyperparameters of the R2D2M2 prior. \\
+
+\subsection{Tail and concentration behaviors}
+\label{subsection:tailcon}
+
+The original R2D2 prior proposed by \cite{r2d2zhang} uses a double exponential (Laplace) base distribution for the coefficients $b_i$. However, as mentioned before, in the multilevel model literature it is customary to treat $b_i$ and in particular the varying coefficients $u_{ig_j}$ as normally distributed (see Section \ref{sec:r2d2m2prior} for details). The use of normal base distributions for the coefficients may lead to different marginal prior distributions, different concentration properties around the origin and tail behavior, which we will study in the following.
+
+Consider the hyperparameters of the R2D2 prior $\mu_{R^2}$, $\varphi_{R^2}$ and let $a_1= \mu_{\rsq} \varphi_{\rsq},  a_2=(1-\mu_{R^2})\varphi_{R^2}$ be the corresponding shape parameters of the Beta distribution on $R^2$ in the standard parameterization. In the following choose $\alpha=(a_\pi,...,a_\pi)'$ with $a_\pi > 0$. \cite{r2d2zhang} showed that, under specific conditions depending on the hyperparameters $a_\pi$ and $a_2$, their prior is able to attain polynomial concentration rates around the origin and polynomial decay rates in the tails, thus allowing for shrinkage of noise towards zero and detection of signals. This shows that the R2D2 prior is able to compete with other well known GL shrinkage priors. We arrive to similar conclusions when using normal base distributions and taking multilevel structure into consideration. In the following propositions, the marginal distributions presented depend on a fixed value of $\sigma$. Other authors \citep{Horseshoe, BaiHypothesisNB, r2d2zhang} usually fix the value of $\sigma=1$ for simplicity, however the marginal priors they present are still conditional on $\sigma$, as are ours.
+
+\begin{prop}
+\label{prop:marginalpriors}
+Given the R2D2M2 prior, the marginal prior densities of $b_i, u_{ig_j}$ given $\sigma$ for any $i=1,...,p, g\in \{1,..., G_i\}, j\in J_g$ are
+%---------------------
+\begin{subequations}
+    \begin{equation}
+    p(b_i|\sigma)= \frac{1}{ \sqrt{2\pi q_i^2}\text{B}(a_\pi, a_2) }\Gamma(\eta) U( \eta, \nu,z_i)
+    \end{equation}
+    \begin{equation}
+    p(u_{ig_j}|\sigma)=\frac{1}{ \sqrt{2\pi q_i^2}\text{B}(a_\pi, a_2) }\Gamma(\eta) U( \eta, \nu,z_{ig_j}),
+    \end{equation}
+\end{subequations}
+%---------------------
+where $q_i^2=\frac{\sigma^2}{\sigma_{x_i}^2},a_2=(1-\mu_{R^2})\varphi_{R^2}, \eta=a_2+1/2$ and $\nu= 3/2-a_\pi$. $\text{B}(\cdot,\cdot)$ and $\Gamma(\cdot)$ represent the Beta and Gamma functions respectively and $U(\eta, \nu, z_i)$ represents the confluent hypergeometric function of the second kind, as well as $z_i=\frac{|b_i|^2}{2q_i^2}$ and $z_{ig_j}=\frac{|u_{ig_j}|^2}{2q_i^2}$. If there are no varying coefficients, the marginal prior densities of $b_i$ remain unaltered.
+\end{prop}
+%---------------------
+\begin{prop}
+\label{prop:originprior}
+As $|b_i|\to 0, |u_{ig_j}| \to 0$, $0<a_\pi \leq 1/2$, and $a_2>0$, the marginal prior densities are unbounded with a singularity (i.e., undefined) at zero.  Moreover, the marginal priors satisfy
+\begin{align*}
+    p(b_i|\sigma)&\sim
+    \begin{cases}
+        c_1 b_i^{2a_\pi-1}+\mathcal{O}\left( |b_i|^{2a_\pi+1} \right), \  &a_\pi<1/2 \\
+         -c_2 \ln (b_i^2/ 2q_i^2)+\mathcal{O}\left(  b_i^2 \ln (b_i^2/ 2q_i^2) \right), \ &a_\pi=1/2
+    \end{cases} \\
+    p(u_{ig_j}|\sigma)&\sim
+    \begin{cases}
+        c_1 u_{ig_j}^{2a_\pi-1}+\mathcal{O}\left( |u_{ig_j}|^{2a_\pi+1} \right), \  &a_\pi<1/2 \\
+         -c_2 \ln (u_{ig_j}^2/2q_i^2)+\mathcal{O}\left(  u_{ig_j}^2 \ln (u_{ig_j}^2/ 2q_i^2) \right), \ &a_\pi=1/2
+    \end{cases} \\
+\end{align*}
+%---------------------
+where $c_1= (2q_i^2)^{1/2-a_\pi} \Gamma(1/2-a_\pi)/\Gamma(a_2+1/2), c_2=1/\Gamma(a_2+1/2)$. When instead $a_\pi>1/2$, the marginal prior densities are bounded and continuous at zero. The marginal prior densities are differentiable at $t=0$ for all values of $a_\pi\geq 1$.
+\end{prop}
+%---------------------
+Proposition \ref{prop:originprior} implies that the value of $a_\pi$ controls the boundedness of the marginal priors near the origin, which in turn influences the level of shrinkage that is enforced upon the coefficients. Sufficient mass near zero allows the prior to shrink small signals sufficiently \citep{BayesPenalizedRegSara}. As $a_\pi$ decreases from $1/2$ to zero, the R2D2M2 prior shifts its mass even stronger to the origin and we can expect the posterior distribution to be concentrated near zero. This leads to prior concentration around sparse coefficient vectors and favors sparse estimation of the coefficients. On the other hand, an increasing $a_\pi$ from $1/2$ produces a bounded prior and indicates that we are in favor of less sparse coefficient vectors.
+
+We can further understand the behavior of the marginal priors by considering that, when assuming $\phi \sim \dirichlet(\alpha)$ where $\alpha= (a_\pi,..., a_\pi)'$, the value of $a_\pi$ determines where the density places its mass \citep{OnTheDirichlet}. When $0< a_\pi< 1$ the density congregates at the edges of the simplex and prefers sparse distributions, i.e., most of the values within a single sample will be close to 0, and the vast majority of the mass will be concentrated in a few of the $\phi$ values. As $a_\pi$ increases to and exceeds 1, the density concentrates near the center of the simplex, with a mode appearing in $\left(\frac{1}{\text{dim}(\alpha)},..., \frac{1}{\text{dim}(\alpha)}\right)'$, where $\text{dim}(\alpha)$ denotes the length of $\alpha$. Values of $a_\pi>1$ prefer variates that are dense and evenly distributed, i.e., all the values within a single sample are similar to each other. This property is inherited by the R2D2M2 prior as Proposition \ref{prop:originprior} shows, since selecting $a_\pi \leq 1/2$ will attempt to concentrate the total variance into few regression terms, whereas $a_\pi>1/2$ will distribute it evenly among the terms. Translation of prior beliefs over sparsity or lack thereof is thus possible by selection of the parameter $a_\pi$.
+%---------------------
+ \begin{figure}[t!]
+	\centering
+	\includegraphics[keepaspectratio,width=\textwidth]{images/bsmarginal.pdf}
+	\caption{Marginal prior densities of the coefficients with $\sigma=1$. The value of $a_\pi$ controls the behavior around the origin. If $a_\pi \leq 1/2$ the marginal density increases towards infinity for values close to zero and is unbounded and non-differentiable at the origin. In contrast, if $a_{\pi}>1/2$ the marginal density is bounded also at the origin. When $a_\pi \geq 1$ the densities become differentiable at the origin. }
+	\label{fig:priorb}
+\end{figure}
+%---------------------
+
+Figure \ref{fig:priorb} shows the marginal density of $p(b_i|\sigma)$ for different values of $a_\pi$ with fixed $q_i^2=1$, the latter implying an equal scale of predictors and response variable without loss of generality. For the value of $a_\pi=0.25$, the prior distribution shows high concentration of mass near the origin and is undefined (singular) at zero, which will lead to stronger shrinkage of weak signals towards the origin. On the other hand, when $a_\pi=0.75$, the singularity is not present anymore and the prior becomes bounded at zero. A case of interest that presents bounded marginal priors is that of the (uniform) flat Dirichlet distribution over the simplex, that is when $a_\pi=1$, meaning that the use of the flat Dirichlet prior over $\phi$ enforces less sparsity. Both types of behavior can be beneficial, since they can play in favor of the prior beliefs about sparsity the user might have.
+
+The tails of the prior dictate whether or not it is possible that large signals can be detected (even when specific levels of sparsity are assumed) and how much these are shrunken towards zero \citep{Horseshoe, DirichletLaplace, vanDP2021theoretical}. It is in principle desirable that heavy tails are present in order to prevent over-shrinkage of true signals \citep{Horseshoe, PiironenHorseshoe}, which in turn can result in priors that are of bounded influence, i.e., sufficiently strong signals are left unshrunken by the prior. This behavior, known as tail robustness \citep{Horseshoe, vanDP2021theoretical}, is vital in sparse settings to be able to shrink coefficients near zero much more forcefully than those far from it. However, we should keep in mind that in practice, this behavior does not always plays in our favour, especially when parameters are weakly identified by the data. To circumvent this issue, authors such as \cite{PiironenHorseshoe, ShrinkingShoulders} have proposed \textit{regularized} versions of shrinkage priors that also regularize very strong signals to some degree.
+
+Our proposed R2D2M2 prior is able to attain heavier tails than the Cauchy distribution and, when no varying terms are present (the R2D2 prior with normal base distributions), it is of bounded influence, as is shown in the following propositions.
+%---------------------
+\begin{prop}
+\label{prop:tailprior}
+Given $|b_i|\to \infty, |u_{ig_j}| \to \infty$ for any $a_\pi>0$ and $a_2>0$ the marginal prior densities satisfy
+\begin{align*}
+ p(b_i|\sigma ) &\sim \mathcal{O}(1/|b_i|^{2a_2+1}), \ \
+p(u_{ig_j}) \sim  \mathcal{O}(1/|u_{ig_j}|^{2a_2+1}).
+\end{align*}
+Moreover, when $0<a_2 \leq 1/2$ the R2D2M2 marginal priors have heavier tails than the Cauchy distribution.
+\end{prop}
+%---------------------
+%---------------------
+\begin{prop}
+\label{prop:r2d2bounded}
+Assume there are no varying coefficients $u_{ig_j}$ in the model, then the R2D2M2 prior is of bounded influence, i.e., sufficiently strong signals are not shrunken.
+\end{prop}
+%---------------------
+
+While we were not able to prove that bounded influence also holds for the R2D2M2 prior, we have no reason to believe that it does not hold. Indeed, the results from the simulations presented in Section \ref{sec:examples} show the bounded influence for the R2D2M2 prior empirically, at least for a range of different hyperparameter and data generating setups.
+
+Propositions \ref{prop:originprior} and \ref{prop:tailprior} show the adaptability of the R2D2M2 prior, in the sense that the user can tune the hyperparameters according to their prior beliefs on the degree of sparsity and signal strength. However, one should keep in mind that the complexity of the problem rapidly increases when considering multilevel structures and care should be taken when selecting the hyperparameters as to neither overfit (too little sparsity) nor over-shrink (too much sparsity).  \\
+
+\subsection{Shrinkage factors}
+\label{subsection:shrinkagefactors}
+
+ When performing Bayesian inference, the prior can be seen as a regularizer. This is clearly exemplified when using the Bayesian LASSO or other Bayesian shrinkage priors \citep{bayesianlasso,BayesPenalizedRegSara}, since the posterior modes under these priors correspond to certain frequentist regularizers \citep{DirichletLaplace}. However, usual frequentist properties are not precisely equivalent; for instance, the posterior distribution for a continuous random variable is not able to produce exact sparse results, as the latter would require a point mass at zero. When using shrinkage priors, some authors have been able to express the posterior means as shrunken versions of (unshrunken) frequentist estimators \citep{PiironenHorseshoe}, which in practice leads to a better out-of-sample predictive performance and a decrease in the variance of the estimators \citep{Ridge}. Several authors have used the concept of \emph{shrinkage factors} to study the amount of shrinkage the prior induces and the effect the different values of the hyperparameters \citep{Horseshoe,PiironenHorseshoe, BaiHypothesisNB, PolsonHalfCauchy}. Here, we present the theory of shrinkage factors for the R2D2M2 prior as well as for the original R2D2 prior, since it has not been done before.
+
+It can be shown that the conditional posterior distributions of the coefficients $b_i$ and $u_{ig_j}$ given $b_{-i}, u_{-ig_j}, \phi, \sigma, \tau, y$ in (\ref{r2d2m2model}) are normal with means given by
+%------------------------
+\begin{equation}
+\label{postbmeancond}
+    \begin{aligned}
+     \mathbb{E}(b_i|  b_{-i}, u,\sigma, \phi, \tau^2, y )&= \left( \frac{\sigma^2_{x_i}}{\phi_i
+    \tau^2}+ SS_i  \right)^{-1}  \sum_{n=1}^N e_{n}^{(-i)} x_{ni}     \\
+    \mathbb{E}(u_{ig_j}| b, u_{-ig_j} ,\sigma, \phi, \tau^2, y )&= \left(  \frac{\sigma^2_{x_i}}{\phi_{ig}\tau^2} + SS_{ig_j}  \right)^{-1} \sum_{n \in L_{g_j}}  e_{n}^{(-ig_j)} x_{ni}, \\
+    \end{aligned}
+\end{equation}
+%---------------------
+where $b_{-i}$ and $u_{-ig_j}$ represent the exclusion of the $i$th overall coefficient and the $ig_j$ varying coefficient, respectively, $SS_i=\sum_{n} x^2_{ni}$ and $SS_{ig_j}=\sum_{n \in L_{g_j}} x_{ni}^2$. We use $e_{n}^{(-i)}$ and $e_{n}^{(-ig_j)}$ to represent the errors that would be obtained when excluding $b_{i}$ and $u_{ig_j}$ when trying to predict the $n$th observation.
+%--------------------
+\begin{align*}
+e_{n}^{(-i)} &=  y_n    -\sum_{i'\neq i} x_{ni'} b_{i'} -\sum_{i=0}^p  x_{ni} \left( \sum_{g \in G_i} u_{i g_{j[n]}} \right)   \\
+e_{n}^{(-ig_j)}&=  y_n - \sum_{i=1}^p x_{ni} b_i - \sum_{i'\neq i}\sum_{g \in G_{i'}} x_{ni'} u_{i'g_{j[n]}}- x_{ni} \sum_{g \in G_i, g'\neq g} u_{ig'_{j[n]}}.
+\end{align*}
+
+If we assume there are no varying terms in the model, i.e., we are considering the original R2D2 prior, and $\sum_{n} x_{ni} x_{nj} = 0$ for $i\neq j$ then the conditional posterior mean of $b_i$ is given by
+%-------------------------
+\begin{align}
+    \label{postbmle}
+    \mathbb{E}(b_i|  \sigma, \phi, \tau^2, y )= \left( \frac{\sigma^2_{x_i}}{\phi_i
+    \tau^2}+ SS_i  \right)^{-1} SS_i \, \hat{b}_i,
+\end{align}
+%-------------------------
+where $\hat{b}_i$ is the maximum likelihood estimate (MLE) of $b_i$. Thus, the posterior mean under the R2D2 prior is a shrunken version of the MLE, a common behavior that is encountered when regularizing \citep{Ridge} or performing Bayesian inference with shrinkage priors such as the regularized horseshoe \citep{PiironenHorseshoe}. We are able to quantify the amount of shrinkage of $b_i$ from their MLE towards zero by introducing shrinkage factors denoted as $\kappa_i$, where $0 \leq \kappa_i \leq 1$. Let
+%---------------------
+\begin{align}
+    \label{defkappa}
+    \kappa_i= \frac{1}{1+\frac{SS_i}{\sigma_{x_i}^2} \phi_i\tau^2}
+\end{align}
+%---------------------
+then Equation \eqref{postbmle} becomes
+%-------------------------
+\begin{align}
+    \label{postbmleshrinkage}
+    \mathbb{E}(b_i| \sigma,\kappa_i, y )= (1-\kappa_i) \hat{b}_i.
+\end{align}
+%-------------------------
+The shrinkage factor $\kappa_i$ quantifies the amount of shrinkage that is exerted by the use of the R2D2 prior, relative to the non-regularized MLE. Shrinkage values close to 1 indicate full shrinkage from the MLE towards 0 and vice-versa, values close to 0 indicate no or only minor shrinkage.
+
+When considering the presence of varying terms in the model, frequentist inference for $b_i$ is typically performed by first integrating out $u_{ig_j}$ \citep{lme4}. From a practical perspective, this is necessary as it is not possible to fully identify the overall and varying coefficients simultaneously when solving the optimization problem related to maximum likelihood. Thus, classical inference chooses to predict, rather than estimate,  the varying terms $u_{ig_j}$ after having obtained estimates $\hat{b}_i$ of the overall coefficients $b_i$ \citep{lme4,wakefield2013bayesian}. In Bayesian inference on the other hand, both unknown quantities $b_i$ and $u_{ig_j}$ are considered random variables and are present in the full posterior distribution. Considering this, the generalization of shrinkage factors from an MLE when including varying terms is not immediate, because the joint MLE of the $b_i$ and $u_{ig_j}$ does not exist in this case. However, Equations \eqref{postbmeancond} still show shrinkage is being carried out from some fixed quantities that involve the conditioned parameters. The approach to define shrinkage from quantities different than the MLE has been considered by other authors too \citep{BaiHypothesisNB,PolsonHalfCauchy}, although not in a multilevel context. Doing so here opens up the way to define shrinkage factors $\kappa_i$ and $\kappa_{ig_j}$ for overall and varying coefficients respectively by
+%-------------------
+\begin{equation}
+    \label{def:kappa}
+\begin{aligned}
+\kappa_i= \frac{ 1 }{1 + r_i \phi_i\tau^2  }, \ \ \ \
+\kappa_{ig_j}= \frac{ 1 }{1+r_{igj}\phi_{ig}\tau^2 },\\
+\end{aligned}
+\end{equation}
+%-------------------
+where $r_i=\frac{ SS_i}{ \sigma^2_{x_i}}$ and $r_{ig_j} = \frac{ SS_{ig_j}}{ \sigma^2_{x_i} }$. Substituting in Equations \eqref{postbmeancond}  results in
+%---------------------
+\begin{equation}
+    \label{postcoeffmeankappa}
+    \begin{aligned}
+    \mathbb{E}(b_i| b_{-i}, \sigma, \kappa_i, y ) &= (1-\kappa_i)  (SS_i)^{-1} \sum_{n=1}^N e_{n}^{(-i)} x_{ni} \\
+      \mathbb{E}(u_{ig_j}| b, u_{-ig_j} ,\sigma, \kappa_{igj}, y ) &=  (1-\kappa_{ig_j})   (SS_{ig_j})^{-1}   \sum_{n \in L_{g_j}}  e_{n}^{(-ig_j)} x_{ni}. \\
+    \end{aligned}
+\end{equation}
+%---------------------
+Shrinkage factors are useful in providing insight on the influence of the prior hyperparameters $\mu_{R^2}, \varphi_{R^2}$, $\alpha$, and $a_\pi$ on the posterior distribution of each term. For instance, notice that in the extreme cases that $\alpha$ is chosen such that for a fixed $i$, $\phi_i \to 0$, then $\kappa_i \to 1$.  If $\phi_i \to 1$ we have $\kappa_i \to (1+ r_i \tau^2)^{-1}$, so regularization takes place even if a priori it is believed that all the explainable variance is explained by a single component $b_i$. Additionally, by comparing $\kappa_i$ and $\kappa_{igj}$ in Equation \eqref{def:kappa} we can see that if $\phi_i \approx \phi_{ig}$ (which can be expected a-priori if $\alpha= a_\pi(1,...,1)'$ when $a_\pi>1$  \citep{OnTheDirichlet}), then the varying coefficients will exhibited stronger shrinkage since $SS_{ig_j}\leq SS_i$ naturally, due to observations being partitioned into different levels. It is also worth mentioning that the shrinkage phenomenon present in the posterior of $u_{ig_j}$ is two-fold: (1) resulting from the usual shrinkage of varying coefficients that hierarchical models exhibit (i.e., partial pooling, \cite{gelman_hill_2006}) and (2) resulting from the local and global scales that are part of the R2D2M2 prior.
+
+It is possible to find a closed expression for the densities of $\kappa_i$ and $\kappa_{ig_j}$, as well as for their moments. Consider Equations \eqref{def:kappa} with $\phi$ fixed and $\tau^2$ random. Using the fact that $\tau^2 \sim \betaprime ( \mu_{R^2}, \varphi_{R^2})$, the prior densities of the shrinkage factors, conditional on $\phi$ but integrated over $\tau$, are given by
+%------------------------
+\begin{equation}
+\label{distkappa}
+    \begin{aligned}
+	p \left( \kappa_i | \phi_i \right) &= \frac{ ( r_i \phi_i)^{a_2} }{\text{B}(a_1, a_2)}   (1-\kappa_i)^{a_1-1} \kappa_i^{a_2-1} \left(  ( r_i\phi_i-1)\kappa_i+1  \right)^{-a_1-a_2}, \\
+	p \left( \kappa_{ig_j} | \phi_{ig} \right)&= \frac{ ( r_{ig_j} \phi_{ig})^{a_2} }{\text{B}(a_1, a_2)}   (1-\kappa_{ig_j})^{a_1-1} \kappa_{ig_j}^{a_2-1} \left(  ( r_{ig_j}\phi_{ig}-1)\kappa_{ig_j}+1  \right)^{-a_1-a_2} . \ \
+    \end{aligned}
+\end{equation}
+%------------------------
+The $m$-th moments of $\kappa_{i} | \phi_{i}$ and $\kappa_{ig_j} | \phi_{ig}$ with $m \in \mathbb{Z}^+$ are given respectively by
+%------------------------
+\begin{align*}
+	\mathbb{E}\left(  \kappa_i^m | \phi_i \right)
+	&=  \frac{ (r_i \phi_i)^{a_2} }{\text{B}(a_1, a_2)} \text{B}(a_2+m, a_1)  \prescript{}{2}{F}_1   \left(   \xi , \beta, \gamma, z_i  \right)   , \\
+	\mathbb{E}\left(  \kappa_i^m | \phi_i \right)
+	&=  \frac{ (r_{ig_j} \phi_{ig})^{a_2} }{\text{B}(a_1, a_2)} \text{B}(a_2+m, a_1)  \prescript{}{2}{F}_1   \left(   \xi , \beta, \gamma, z_{ig_j}  \right)   , \ \ \
+\end{align*}
+%------------------------
+where $\prescript{}{2}{F}_1   \left(   \xi, \beta, \gamma, z  \right)$ is the hypergeometric function \citep{Zwillinger} with $\xi= a_1+a_2, \beta=a_2+m , \gamma= a_1+a_2+m$, $z_i= 1-r_i \phi_i$ and $z_{ig_j}=1-r_{ig_j}\phi_{ig}$ . In the important case of $m=1$, we have
+%------------------------
+\begin{equation}
+    \label{expkappab}
+\begin{aligned}
+	\mathbb{E}\left(  \kappa_i | \phi_i \right)&=(r_i \phi_i)^{a_2} \left(  1-\mu_{R^2} \right)  \prescript{}{2}{F}_1   \left(   \xi , \beta, \gamma, z_i  \right) , \\
+	\mathbb{E}\left(  \kappa_{ig_j} | \phi_{ig} \right)&=(r_{ig_j} \phi_{ig})^{a_2} \left(  1-\mu_{R^2} \right)  \prescript{}{2}{F}_1   \left(   \xi , \beta, \gamma, z_{ig_j}  \right).
+\end{aligned}
+\end{equation}
+%---------
+The distribution of the shrinkage factors $\kappa$ depends directly on the hyperparameters $\mu_{R^2}, \varphi_{R^2}$ specified for the prior on $R^2$ and is sufficiently flexible to attain different forms that represent a diversity of a priori beliefs as we show in Figure \ref{fig:kappa_dist2}. For example, the prior density of $\kappa$ can become unbounded near 0 or 1 (or both at the same time), favoring limited or full shrinkage respectively. It is also possible to obtain bounded densities, which can represent mild shrinkage. These differences influence how noise and large signals are treated, which is reflected in the values of posterior means \citep{Horseshoe}. Equations (\ref{expkappab}) show the effect of $\mu_{R^2}$ on the amount of shrinkage and how the prior is able to relate prior belief on $R^2$ with expected shrinkage on the coefficients. The expected shrinkage of each individual coefficient in the model is proportional to $1-\mu_{R^2}$, implying that $\mu_{R^2}$ acts in a global manner. This is expected due to the relationship between the model's global scale $\tau^2$ and $R^2$ established in Equation \eqref{eq:r2ft2}. Prior beliefs about $R^2$ are straightforwardly inherited to the amount of shrinkage the prior exhibits. If the user considers $R^2$ is low and represents this via a low value of $\mu_{R^2}$, then a noticeable amount of shrinkage will take place. Analogously, a high value of $\mu_{R^2}$ results in less shrinkage.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+  	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.4\textheight]{images/kapas_dist1.pdf}
+	\caption{Densities of shrinkage factors $\kappa$ for several hyperparameter choices. The distribution offers  flexibility to express different shrinkage behaviors. Notice that when $\mu=0.5$ and $\varphi=1$ the distribution is symmetric, categorizing the coefficient as either complete noise ($k\approx 1$) or as a strong signal ($k\approx 0$).  }
+	\label{fig:kappa_dist2}
+\end{figure}
+
+%-----------
+Figure \ref{fig:kappa_dist2} shows that the density of $\kappa$ is able to reflect a horseshoe like prior for the amount of shrinkage when $(\mu_{R^2}, \varphi_{R^2})=(0.5,1)$. This type of prior can be considered fairly non-informative on the $\kappa$ scale, since it places 1/3 of its mass on $1/4 \leq \kappa \leq 3/4$, with  the rest of the density equally distributed to the left of 1/4 and to the right of 3/4. This shape indicates that we expect to see both relevant strong signals ($\kappa \approx 0$) and irrelevant variables a priori ($\kappa \approx 1$) \citep{Horseshoe, PiironenHorseshoe}.
+
+\subsection{Effective number of non-zero coefficients}
+\label{subsection:meff}
+\cite{PiironenHorseshoe} proposed that the prior's hyperparameters can be understood intuitively by analyzing the imposed prior on the \textit{effective number of coefficients}. In the case of single level models they define the effective number of overall coefficients as
+%--------
+\begin{align}
+\label{meffcoefoverall}
+m_{\text{eff}_O}= \sum_{i=1}^{p}  (1-\kappa_i).
+\end{align}
+%----------
+We generalize Equation (\ref{meffcoefoverall}) to multilevel models (\ref{r2d2m2model}) by also including the varying coefficients:
+%--------
+\begin{align}
+\label{meffcoef}
+m_{\text{eff}}= \sum_{i=1}^{p}  (1-\kappa_i)+\sum_{i \in \{0,...,p\}} \sum_{g \in G_i} \sum_{j \in J_g} (1-\kappa_{ig_j}).
+\end{align}
+%--------
+When the shrinkage factors $\kappa$ are close to 0 or 1, resulting in no shrinkage and total shrinkage respectively, Equation \eqref{meffcoef} can help us understand how specific values for $\mu_{R^2}, \varphi_{R^2}$ determine the amount of unshrunken ("active") variables present in the model and can serve as an indicator of the effective model complexity.
+
+For a given fixed dataset, we can visualize the prior imposed on $m_{\text{eff}}$ for different hyperparameter values of $\mu_{R^2}, \varphi_{R^2}$. This can be done by simulating observations from $m_{\text{eff}}$ directly. To do so, we first generate random variates $\tau, \phi$ independently from their prior distributions, then we compute $\kappa_i, \kappa_{ig_j}$ from Equations \eqref{def:kappa} and finally calculate $m_{\text{eff}}$. Figure \ref{fig:meffcombined10} shows the histograms of the effective number of overall coefficients and total effective number of coefficients (which include the overall plus varying coefficients). In both cases, the behavior is as previously described; as $\mu_{R^2}$ increases the effective number of overall coefficients increases too and vice versa.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+  	\includegraphics[keepaspectratio, width=\textwidth,]{images/meffs_combined100.pdf}
+	\caption{Prior densities for the effective number of coefficients under different conditions for $\mu_{R^2}$ with fixed $\varphi_{R^2} = 1, a_\pi=0.5$ and $p=100$ overall coefficients, one grouping factor and 20 levels.  Decreasing $\mu_{R^2}$ implies less signal expected a priori, which results in increased a priori shrinkage of the coefficients. These plots serve as an intuitive way to understand the effect the hyperparameters have on the amount of shrinkage. }
+	\label{fig:meffcombined10}
+\end{figure}
+
+We recommend that the user visualizes the prior of $m_{\text{eff}}$ for different values of $\mu_{R^2}, \varphi_{R^2}$ to get a better idea of how the global shrinkage is affected by the selection of the hyperparameters; and to verify if this choice represents their prior expectations on the number of non-zero coefficients. The prior plots of $m_{\text{eff}}$ provide an intuitive way of understanding the induced overall shrinkage and can even become a valuable tool of communication between the user and non-specialized audiences.

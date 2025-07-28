@@ -1,0 +1,527 @@
+\begin{thebibliography}{66}
+\newcommand{\enquote}[1]{``#1''}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{{\tt #1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\ifx\endbibitem\undefined \let\endbibitem\relax\fi
+
+\bibitem[{Aitchison and Shen(1980)}]{logisticnormal}
+Aitchison, J. and Shen, S.~M. (1980).
+\newblock \enquote{Logistic-Normal Distributions: Some Properties and Uses.}
+\newblock {\em Biometrika\/}, 67(2): 261--272.
+\newline\urlprefix\url{http://www.jstor.org/stable/2335470}
+\endbibitem
+
+\bibitem[{Bai and Ghosh(2019)}]{BaiHypothesisNB}
+Bai, R. and Ghosh, M. (2019).
+\newblock \enquote{Large-scale multiple hypothesis testing with the normal-beta
+  prime prior.}
+\newblock {\em Statistics\/}, 53(6): 1210--1233.
+\newline\urlprefix\url{https://doi.org/10.1080/02331888.2019.1662017}
+\endbibitem
+
+\bibitem[{Barr et~al.(2013)Barr, Levy, Scheepers, and Tily}]{Barr2013RandomES}
+Barr, D.~J., Levy, R., Scheepers, C., and Tily, H.~J. (2013).
+\newblock \enquote{Random effects structure for confirmatory hypothesis
+  testing: Keep it maximal.}
+\newblock {\em Journal of memory and language\/}, 68 3.
+\endbibitem
+
+\bibitem[{Bates et~al.(2015)Bates, Mächler, Bolker, and Walker}]{lme4}
+Bates, D., Mächler, M., Bolker, B., and Walker, S. (2015).
+\newblock \enquote{Fitting Linear Mixed-Effects Models Using lme4.}
+\newblock {\em Journal of Statistical Software\/}, 67(1): 1–48.
+\newline\urlprefix\url{https://www.jstatsoft.org/index.php/jss/article/view/v067i01}
+\endbibitem
+
+\bibitem[{Benjamini and Hochberg(1995)}]{FDRBenjamini}
+Benjamini, Y. and Hochberg, Y. (1995).
+\newblock \enquote{Controlling the False Discovery Rate: A Practical and
+  Powerful Approach to Multiple Testing.}
+\newblock {\em Journal of the Royal Statistical Society. Series B
+  (Methodological)\/}, 57(1): 289--300.
+\newline\urlprefix\url{http://www.jstor.org/stable/2346101}
+\endbibitem
+
+\bibitem[{Bhadra et~al.(2016)Bhadra, Datta, Polson, and
+  Willard}]{PolsonDefault}
+Bhadra, A., Datta, J., Polson, N.~G., and Willard, B. (2016).
+\newblock \enquote{Default Bayesian analysis with global-local shrinkage
+  priors.}
+\newblock {\em Biometrika\/}, 103(4): 955--969.
+\newline\urlprefix\url{http://www.jstor.org/stable/26363497}
+\endbibitem
+
+\bibitem[{Bhattacharya et~al.(2015)Bhattacharya, Pati, Pillai, and
+  Dunson}]{DirichletLaplace}
+Bhattacharya, A., Pati, D., Pillai, N.~S., and Dunson, D.~B. (2015).
+\newblock \enquote{Dirichlet–Laplace Priors for Optimal Shrinkage.}
+\newblock {\em Journal of the American Statistical Association\/}, 110(512):
+  1479--1490.
+\newblock PMID: 27019543.
+\newline\urlprefix\url{https://doi.org/10.1080/01621459.2014.960967}
+\endbibitem
+
+\bibitem[{Brooks et~al.(2011)Brooks, Gelman, and Jones}]{handbookmcmc}
+Brooks, Gelman, S., and Jones, A. (2011).
+\newblock {\em Handbook of Markov Chain Monte Carlo\/}.
+\newblock Chapman and Hall/CRC, 1 edition.
+\endbibitem
+
+\bibitem[{Browne and Draper(2006)}]{BrowneDraper}
+Browne, W.~J. and Draper, D. (2006).
+\newblock \enquote{{A comparison of Bayesian and likelihood-based methods for
+  fitting multilevel models}.}
+\newblock {\em Bayesian Analysis\/}, 1(3): 473 -- 514.
+\newline\urlprefix\url{https://doi.org/10.1214/06-BA117}
+\endbibitem
+
+\bibitem[{Buehlmann et~al.(2014)Buehlmann, Kalisch, and Meier}]{BuehlmannBio}
+Buehlmann, P., Kalisch, M., and Meier, L. (2014).
+\newblock \enquote{High-Dimensional Statistics with a View Toward Applications
+  in Biology.}
+\newblock {\em Annual Review of Statistics and Its Application\/}, 1(1):
+  255--278.
+\newline\urlprefix\url{https://doi.org/10.1146/annurev-statistics-022513-115545}
+\endbibitem
+
+\bibitem[{Bürkner(2017)}]{brmsJSS}
+Bürkner, P.-C. (2017).
+\newblock \enquote{brms: An R Package for Bayesian Multilevel Models Using
+  Stan.}
+\newblock {\em Journal of Statistical Software\/}, 80(1): 1–28.
+\newline\urlprefix\url{https://www.jstatsoft.org/index.php/jss/article/view/v080i01}
+\endbibitem
+
+\bibitem[{Bürkner(2021)}]{brmsJSSitems}
+--- (2021).
+\newblock \enquote{Bayesian Item Response Modeling in R with brms and Stan.}
+\newblock {\em Journal of Statistical Software\/}, 100(5): 1–54.
+\newline\urlprefix\url{https://www.jstatsoft.org/index.php/jss/article/view/v100i05}
+\endbibitem
+
+\bibitem[{Bürkner and Charpentier(2020)}]{buerknermonotonic}
+Bürkner, P.-C. and Charpentier, E. (2020).
+\newblock \enquote{Modelling monotonic effects of ordinal predictors in
+  Bayesian regression models.}
+\newblock {\em British Journal of Mathematical and Statistical Psychology\/},
+  73(3): 420--451.
+\newline\urlprefix\url{https://bpspsychub.onlinelibrary.wiley.com/doi/abs/10.1111/bmsp.12195}
+\endbibitem
+
+\bibitem[{Carpenter et~al.(2017)Carpenter, Gelman, Hoffman, Lee, Goodrich,
+  Betancourt, Brubaker, Guo, Li, and Riddell}]{StanJSS}
+Carpenter, B., Gelman, A., Hoffman, M.~D., Lee, D., Goodrich, B., Betancourt,
+  M., Brubaker, M., Guo, J., Li, P., and Riddell, A. (2017).
+\newblock \enquote{Stan: A Probabilistic Programming Language.}
+\newblock {\em Journal of Statistical Software\/}, 76(1): 1–32.
+\newline\urlprefix\url{https://www.jstatsoft.org/index.php/jss/article/view/v076i01}
+\endbibitem
+
+\bibitem[{Carvalho et~al.(2010)Carvalho, Polson, and Scott}]{Horseshoe}
+Carvalho, Polson, and Scott (2010).
+\newblock \enquote{The horseshoe estimator for sparse signals.}
+\newblock {\em Biometrika\/}, 97(2): 465--480.
+\newline\urlprefix\url{http://www.jstor.org/stable/25734098}
+\endbibitem
+
+\bibitem[{Carvalho et~al.(2009)Carvalho, Polson, and
+  Scott}]{HorseshoeProceedings}
+Carvalho, C.~M., Polson, N.~G., and Scott, J.~G. (2009).
+\newblock \enquote{Handling Sparsity via the Horseshoe.}
+\newblock In van Dyk, D. and Welling, M. (eds.), {\em Proceedings of the Twelth
+  International Conference on Artificial Intelligence and Statistics\/},
+  volume~5 of {\em Proceedings of Machine Learning Research\/}, 73--80. Hilton
+  Clearwater Beach Resort, Clearwater Beach, Florida USA: PMLR.
+\newline\urlprefix\url{https://proceedings.mlr.press/v5/carvalho09a.html}
+\endbibitem
+
+\bibitem[{Catalina et~al.(2020)Catalina, Bürkner, and
+  Vehtari}]{catalina2020projection}
+Catalina, A., Bürkner, P.-C., and Vehtari, A. (2020).
+\newblock \enquote{Projection Predictive Inference for Generalized Linear and
+  Additive Multilevel Models.}
+\endbibitem
+
+\bibitem[{Depaoli and Clifton(2015)}]{Depaoli2015ABA}
+Depaoli, S. and Clifton, J.~P. (2015).
+\newblock \enquote{A Bayesian Approach to Multilevel Structural Equation
+  Modeling With Continuous and Dichotomous Outcomes.}
+\newblock {\em Structural Equation Modeling: A Multidisciplinary Journal\/},
+  22: 327 -- 351.
+\endbibitem
+
+\bibitem[{Fawcett(2006)}]{roccurves}
+Fawcett, T. (2006).
+\newblock \enquote{An introduction to ROC analysis.}
+\newblock {\em Pattern Recognition Letters\/}, 27(8): 861--874.
+\newblock ROC Analysis in Pattern Recognition.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/S016786550500303X}
+\endbibitem
+
+\bibitem[{Fuglstad et~al.(2019)Fuglstad, Simpson, Lindgren, and
+  Rue}]{Fulgstad2019}
+Fuglstad, G.-A., Simpson, D., Lindgren, F., and Rue, H. (2019).
+\newblock \enquote{Constructing Priors that Penalize the Complexity of Gaussian
+  Random Fields.}
+\newblock {\em Journal of the American Statistical Association\/}, 114(525):
+  445--452.
+\newline\urlprefix\url{https://doi.org/10.1080/01621459.2017.1415907}
+\endbibitem
+
+\bibitem[{Gelman(2006)}]{GelmanHalfStudentt}
+Gelman, A. (2006).
+\newblock \enquote{{Prior distributions for variance parameters in hierarchical
+  models (comment on article by Browne and Draper)}.}
+\newblock {\em Bayesian Analysis\/}, 1(3): 515 -- 534.
+\newline\urlprefix\url{https://doi.org/10.1214/06-BA117A}
+\endbibitem
+
+\bibitem[{Gelman et~al.(2013)Gelman, Carlin, Stern, Dunson, Vehtari, and
+  Rubin}]{gelman2013bda}
+Gelman, A., Carlin, J., Stern, H., Dunson, D., Vehtari, A., and Rubin, D.
+  (2013).
+\newblock {\em Bayesian Data Analysis, Third Edition\/}.
+\newblock Chapman \& Hall/CRC Texts in Statistical Science. Taylor \& Francis.
+\newline\urlprefix\url{https://books.google.de/books?id=ZXL6AQAAQBAJ}
+\endbibitem
+
+\bibitem[{Gelman and Hill(2006)}]{gelman_hill_2006}
+Gelman, A. and Hill, J. (2006).
+\newblock {\em Data Analysis Using Regression and Multilevel/Hierarchical
+  Models\/}.
+\newblock Analytical Methods for Social Research. Cambridge University Press.
+\endbibitem
+
+\bibitem[{Gelman et~al.(2020{\natexlab{a}})Gelman, Hill, and
+  Vehtari}]{gelmanregstories2020}
+Gelman, A., Hill, J., and Vehtari, A. (2020{\natexlab{a}}).
+\newblock {\em Regression and Other Stories\/}.
+\newblock Analytical Methods for Social Research. Cambridge University Press.
+\endbibitem
+
+\bibitem[{Gelman et~al.(2020{\natexlab{b}})Gelman, Vehtari, Simpson,
+  Margossian, Carpenter, Yao, Kennedy, Gabry, Bürkner, and
+  Modrák}]{bayesianworkflow}
+Gelman, A., Vehtari, A., Simpson, D., Margossian, C.~C., Carpenter, B., Yao,
+  Y., Kennedy, L., Gabry, J., Bürkner, P.-C., and Modrák, M.
+  (2020{\natexlab{b}}).
+\newblock \enquote{Bayesian Workflow.}
+\newline\urlprefix\url{https://arxiv.org/abs/2011.01808}
+\endbibitem
+
+\bibitem[{Good(1962)}]{Jeffreys}
+Good, I.~J. (1962).
+\newblock \enquote{Theory of Probability Harold Jeffreys (Third edition, 447 +
+  ix pp., Oxford Univ. Press, 84s.).}
+\newblock {\em Geophysical Journal International\/}, 6: 555--558.
+\endbibitem
+
+\bibitem[{Goodrich et~al.(2020)Goodrich, Gabry, Ali, and Brilleman}]{rstanarm}
+Goodrich, B., Gabry, J., Ali, I., and Brilleman, S. (2020).
+\newblock \enquote{rstanarm: {Bayesian} applied regression modeling via
+  {Stan}.}
+\newblock R package version 2.21.1.
+\newline\urlprefix\url{https://mc-stan.org/rstanarm}
+\endbibitem
+
+\bibitem[{Gorinova et~al.(2019)Gorinova, Gordon, and
+  Sutton}]{ProbProgrammingGorinova}
+Gorinova, M.~I., Gordon, A.~D., and Sutton, C. (2019).
+\newblock \enquote{Probabilistic Programming with Densities in SlicStan:
+  Efficient, Flexible, and Deterministic.}
+\newblock {\em Proc. ACM Program. Lang.\/}, 3(POPL).
+\newline\urlprefix\url{https://doi.org/10.1145/3290348}
+\endbibitem
+
+\bibitem[{Harrell(2013)}]{harrell2013regression}
+Harrell, F. (2013).
+\newblock {\em Regression Modeling Strategies: With Applications to Linear
+  Models, Logistic Regression, and Survival Analysis\/}.
+\newblock Springer Series in Statistics. Springer New York.
+\newline\urlprefix\url{https://books.google.de/books?id=7D0mBQAAQBAJ}
+\endbibitem
+
+\bibitem[{Hoerl and Kennard(1970)}]{Ridge}
+Hoerl, A.~E. and Kennard, R.~W. (1970).
+\newblock \enquote{Ridge Regression: Biased Estimation for Nonorthogonal
+  Problems.}
+\newblock {\em Technometrics\/}, 12(1): 55--67.
+\newline\urlprefix\url{http://www.jstor.org/stable/1267351}
+\endbibitem
+
+\bibitem[{Hoffman and Gelman(2014)}]{nuts}
+Hoffman, M.~D. and Gelman, A. (2014).
+\newblock \enquote{The No-U-Turn Sampler: Adaptively Setting Path Lengths in
+  Hamiltonian Monte Carlo.}
+\newblock {\em J. Mach. Learn. Res.\/}, 15(1): 1593–1623.
+\endbibitem
+
+\bibitem[{Jeffrey et~al.(2007)Jeffrey, Zwillinger, Gradshteyn, and
+  Ryzhik}]{Zwillinger}
+Jeffrey, A., Zwillinger, D., Gradshteyn, I., and Ryzhik, I. (2007).
+\newblock \enquote{8–9 - Special Functions.}
+\newblock In {\em Table of Integrals, Series, and Products (Seventh
+  Edition)\/}, 859--1048. Boston: Academic Press, seventh edition edition.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/B9780080471112500169}
+\endbibitem
+
+\bibitem[{Jones(2009)}]{Kumaraswamy}
+Jones, M. (2009).
+\newblock \enquote{Kumaraswamy’s distribution: A beta-type distribution with
+  some tractability advantages.}
+\newblock {\em Statistical Methodology\/}, 6(1): 70--81.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/S1572312708000282}
+\endbibitem
+
+\bibitem[{Kim et~al.(2022)Kim, Moon, Modrák, and Säilynoja}]{sbcmanual}
+Kim, S., Moon, H., Modrák, M., and Säilynoja, T. (2022).
+\newblock {\em SBC: Simulation Based Calibration for rstan/cmdstanr models\/}.
+\newblock Https://hyunjimoon.github.io/SBC/,
+  https://github.com/hyunjimoon/SBC/.
+\endbibitem
+
+\bibitem[{Kruijer et~al.(2010)Kruijer, Rousseau, and Vaart}]{SimplexKruijer}
+Kruijer, W., Rousseau, J., and Vaart, A. (2010).
+\newblock \enquote{Adaptive Bayesian Density Estimation with Location-Scale
+  Mixtures.}
+\newblock {\em Electronic Journal of Statistics\/}, 4.
+\endbibitem
+
+\bibitem[{Kruschke(2015)}]{meanprecbeta}
+Kruschke, J.~K. (2015).
+\newblock \enquote{Chapter 6 - Inferring a Binomial Probability via Exact
+  Mathematical Analysis.}
+\newblock In Kruschke, J.~K. (ed.), {\em Doing Bayesian Data Analysis (Second
+  Edition)\/}, 123--141. Boston: Academic Press, second edition edition.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/B9780124058880000064}
+\endbibitem
+
+\bibitem[{Laura~Dietz(2010)}]{TikzBayesNet}
+Laura~Dietz, B.~O., Jaakko~Luttinen (2010).
+\newblock \enquote{{BayesNet}.}
+\newline\urlprefix\url{https://github.com/jluttine/tikz-bayesnet}
+\endbibitem
+
+\bibitem[{Leydold and Hörmann(2011)}]{GenInvGaussian}
+Leydold, J. and Hörmann, W. (2011).
+\newblock \enquote{Generating generalized inverse Gaussian random variates by
+  fast inversion.}
+\newblock {\em Computational Statistics and Data Analysis\/}, 55(1): 213--217.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/S0167947310002847}
+\endbibitem
+
+\bibitem[{Lin(2016)}]{OnTheDirichlet}
+Lin, J. (2016).
+\newblock \enquote{On The Dirichlet Distribution by Jiayu Lin.}
+\endbibitem
+
+\bibitem[{Lin et~al.(2020)Lin, Drton, and Shojaie}]{LinLina}
+Lin, L., Drton, M., and Shojaie, A. (2020).
+\newblock \enquote{Statistical Significance in High-Dimensional Linear Mixed
+  Models.}
+\newblock In {\em Proceedings of the 2020 ACM-IMS on Foundations of Data
+  Science Conference\/}, FODS '20, 171–181. New York, NY, USA: Association
+  for Computing Machinery.
+\newline\urlprefix\url{https://doi.org/10.1145/3412815.3416883}
+\endbibitem
+
+\bibitem[{Mikkola et~al.(2021)Mikkola, Martin, Chandramouli, Hartmann, Pla,
+  Thomas, Pesonen, Corander, Vehtari, Kaski, Bürkner, and Klami}]{prioreli}
+Mikkola, P., Martin, O.~A., Chandramouli, S., Hartmann, M., Pla, O.~A., Thomas,
+  O., Pesonen, H., Corander, J., Vehtari, A., Kaski, S., Bürkner, P.-C., and
+  Klami, A. (2021).
+\newblock \enquote{Prior knowledge elicitation: The past, present, and future.}
+\endbibitem
+
+\bibitem[{Miller(2006)}]{appliedasymptotic}
+Miller, P. (2006).
+\newblock {\em Applied Asymptotic Analysis\/}.
+\newblock American Mathematical Society, 1 edition.
+\endbibitem
+
+\bibitem[{Morris et~al.(2019)Morris, Wheeler-Martin, Simpson, Mooney, Gelman,
+  and DiMaggio}]{Morris2019BayesianHS}
+Morris, M., Wheeler-Martin, K., Simpson, D.~P., Mooney, S.~J., Gelman, A., and
+  DiMaggio, C.~J. (2019).
+\newblock \enquote{Bayesian hierarchical spatial models: Implementing the Besag
+  York Molli{\'e} model in stan.}
+\newblock {\em Spatial and spatio-temporal epidemiology\/}, 31: 100301.
+\endbibitem
+
+\bibitem[{Nakagawa and Schielzeth(2013)}]{r2mlmNakagawa}
+Nakagawa, S. and Schielzeth, H. (2013).
+\newblock \enquote{A general and simple method for obtaining R2 from
+  generalized linear mixed-effects models.}
+\newblock {\em Methods in Ecology and Evolution\/}, 4(2): 133--142.
+\newline\urlprefix\url{https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/j.2041-210x.2012.00261.x}
+\endbibitem
+
+\bibitem[{Nishimura and Suchard(2022)}]{ShrinkingShoulders}
+Nishimura, A. and Suchard, M.~A. (2022).
+\newblock \enquote{{Shrinkage with Shrunken Shoulders: Gibbs Sampling Shrinkage
+  Model Posteriors with Guaranteed Convergence Rates}.}
+\newblock {\em Bayesian Analysis\/}, 1 -- 24.
+\newline\urlprefix\url{https://doi.org/10.1214/22-BA1308}
+\endbibitem
+
+\bibitem[{Olver et~al.(2010)Olver, of~Standards, (U.S.), Lozier, Boisvert, and
+  Clark}]{nisthandbook}
+Olver, F., of~Standards, N.~I., (U.S.), T., Lozier, D., Boisvert, R., and
+  Clark, C. (2010).
+\newblock {\em NIST Handbook of Mathematical Functions Hardback and CD-ROM\/}.
+\newblock Cambridge University Press.
+\newline\urlprefix\url{https://books.google.de/books?id=3I15Ph1Qf38C}
+\endbibitem
+
+\bibitem[{Paananen et~al.(2020)Paananen, Catalina, Burkner, and
+  Vehtari}]{Paananen2020GroupHA}
+Paananen, T., Catalina, A., Burkner, P.-C., and Vehtari, A. (2020).
+\newblock \enquote{Group Heterogeneity Assessment for Multilevel Models.}
+\newblock {\em arXiv: Methodology\/}.
+\endbibitem
+
+\bibitem[{Park and Casella(2008)}]{bayesianlasso}
+Park, T. and Casella, G. (2008).
+\newblock \enquote{The Bayesian Lasso.}
+\newblock {\em Journal of the American Statistical Association\/}, 103(482):
+  681--686.
+\newline\urlprefix\url{https://doi.org/10.1198/016214508000000337}
+\endbibitem
+
+\bibitem[{Piironen et~al.(2020)Piironen, Paasiniemi, and
+  Vehtari}]{PiironenProjInf}
+Piironen, J., Paasiniemi, M., and Vehtari, A. (2020).
+\newblock \enquote{{Projective inference in high-dimensional problems:
+  Prediction and feature selection}.}
+\newblock {\em Electronic Journal of Statistics\/}, 14(1): 2155 -- 2197.
+\newline\urlprefix\url{https://doi.org/10.1214/20-EJS1711}
+\endbibitem
+
+\bibitem[{Piironen and Vehtari(2017)}]{PiironenHorseshoe}
+Piironen, J. and Vehtari, A. (2017).
+\newblock \enquote{{Sparsity information and regularization in the horseshoe
+  and other shrinkage priors}.}
+\newblock {\em Electronic Journal of Statistics\/}, 11(2): 5018 -- 5051.
+\newline\urlprefix\url{https://doi.org/10.1214/17-EJS1337SI}
+\endbibitem
+
+\bibitem[{Polson and Scott(2012)}]{PolsonHalfCauchy}
+Polson, N.~G. and Scott, J.~G. (2012).
+\newblock \enquote{{On the Half-Cauchy Prior for a Global Scale Parameter}.}
+\newblock {\em Bayesian Analysis\/}, 7(4): 887 -- 902.
+\newline\urlprefix\url{https://doi.org/10.1214/12-BA730}
+\endbibitem
+
+\bibitem[{Rights and Sterba(2019)}]{r2mlmssterba}
+Rights, J.~D. and Sterba, S.~K. (2019).
+\newblock \enquote{Quantifying explained variance in multilevel models: An
+  integrative framework for defining R-squared measures.}
+\newblock {\em Psychological methods\/}, 24 3: 309--338.
+\endbibitem
+
+\bibitem[{Robert(1991)}]{RobertGIG}
+Robert, C. (1991).
+\newblock \enquote{Generalized inverse normal distributions.}
+\newblock {\em Statistics \& Probability Letters\/}, 11(1): 37--41.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/016771529190174P}
+\endbibitem
+
+\bibitem[{Simpson et~al.(2017)Simpson, Rue, Riebler, Martins, and
+  Sørbye}]{pcpriors}
+Simpson, D., Rue, H., Riebler, A., Martins, T.~G., and Sørbye, S.~H. (2017).
+\newblock \enquote{{Penalising Model Component Complexity: A Principled,
+  Practical Approach to Constructing Priors}.}
+\newblock {\em Statistical Science\/}, 32(1): 1 -- 28.
+\newline\urlprefix\url{https://doi.org/10.1214/16-STS576}
+\endbibitem
+
+\bibitem[{{Stan Development Team}(2022)}]{stan2022}
+{Stan Development Team} (2022).
+\newblock \enquote{Stan Modeling Language Users Guide and Reference Manual,
+  Version 2.30.0.}
+\newline\urlprefix\url{http://mc-stan.org/}
+\endbibitem
+
+\bibitem[{Säilynoja et~al.(2021)Säilynoja, Bürkner, and
+  Vehtari}]{teemubuerknergraphical}
+Säilynoja, T., Bürkner, P.-C., and Vehtari, A. (2021).
+\newblock \enquote{Graphical Test for Discrete Uniformity and its Applications
+  in Goodness of Fit Evaluation and Multiple Sample Comparison.}
+\endbibitem
+
+\bibitem[{Talts et~al.(2020)Talts, Betancourt, Simpson, Vehtari, and
+  Gelman}]{taltssbc}
+Talts, S., Betancourt, M., Simpson, D., Vehtari, A., and Gelman, A. (2020).
+\newblock \enquote{Validating Bayesian Inference Algorithms with
+  Simulation-Based Calibration.}
+\endbibitem
+
+\bibitem[{van~der Pas(2021)}]{vanDP2021theoretical}
+van~der Pas, S. (2021).
+\newblock \enquote{Theoretical guarantees for the horseshoe and other
+  global-local shrinkage priors.}
+\newblock In {\em Handbook of Bayesian Variable Selection\/}, 133--160. Chapman
+  and Hall/CRC.
+\endbibitem
+
+\bibitem[{{Van Erp} et~al.(2019){Van Erp}, Oberski, and
+  Mulder}]{BayesPenalizedRegSara}
+{Van Erp}, S., Oberski, D., and Mulder, J. (2019).
+\newblock \enquote{Shrinkage priors for Bayesian penalized regression.}
+\newblock {\em Journal of Mathematical Psychology\/}, 89: 31--50.
+\endbibitem
+
+\bibitem[{Vehtari and Ojanen(2012)}]{AkiSurvey}
+Vehtari, A. and Ojanen, J. (2012).
+\newblock \enquote{{A survey of Bayesian predictive methods for model
+  assessment, selection and comparison}.}
+\newblock {\em Statistics Surveys\/}, 6(none): 142 -- 228.
+\newline\urlprefix\url{https://doi.org/10.1214/12-SS102}
+\endbibitem
+
+\bibitem[{Wakefield(2013)}]{wakefield2013bayesian}
+Wakefield, J. (2013).
+\newblock {\em Bayesian and Frequentist Regression Methods\/}.
+\newblock Springer Series in Statistics. Springer New York.
+\newline\urlprefix\url{https://books.google.de/books?id=OUJEAAAAQBAJ}
+\endbibitem
+
+\bibitem[{Wood(2017)}]{wood2017generalized}
+Wood, S. (2017).
+\newblock {\em Generalized Additive Models: An Introduction with R\/}.
+\newblock Chapman \& Hall / CRC texts in statistical science. CRC Press/Taylor
+  \& Francis Group.
+\newline\urlprefix\url{https://books.google.de/books?id=OitmjwEACAAJ}
+\endbibitem
+
+\bibitem[{Wood(2011)}]{Wood2011mgcv}
+Wood, S.~N. (2011).
+\newblock \enquote{Fast stable restricted maximum likelihood and marginal
+  likelihood estimation of semiparametric generalized linear models.}
+\endbibitem
+
+\bibitem[{Yanchenko et~al.(2021)Yanchenko, Bondell, and Reich}]{Yanchenko}
+Yanchenko, E., Bondell, H.~D., and Reich, B.~J. (2021).
+\newblock \enquote{The R2D2 Prior for Generalized Linear Mixed Models.}
+\newline\urlprefix\url{https://arxiv.org/abs/2111.10718}
+\endbibitem
+
+\bibitem[{Zanella and Roberts(2021)}]{GibbsMultigrid}
+Zanella, G. and Roberts, G. (2021).
+\newblock \enquote{{Multilevel Linear Models, Gibbs Samplers and Multigrid
+  Decompositions (with Discussion)}.}
+\newblock {\em Bayesian Analysis\/}, 16(4): 1309 -- 2770.
+\newline\urlprefix\url{https://doi.org/10.1214/20-BA1242}
+\endbibitem
+
+\bibitem[{Zhang et~al.(2020)Zhang, Naughton, Bondell, and Reich}]{r2d2zhang}
+Zhang, Y.~D., Naughton, B.~P., Bondell, H.~D., and Reich, B.~J. (2020).
+\newblock \enquote{Bayesian Regression Using a Prior on the Model Fit: The
+  R2-D2 Shrinkage Prior.}
+\newblock {\em Journal of the American Statistical Association\/}, 0(0): 1--13.
+\newline\urlprefix\url{https://doi.org/10.1080/01621459.2020.1825449}
+\endbibitem
+
+\end{thebibliography}

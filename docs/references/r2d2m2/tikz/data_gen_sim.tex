@@ -1,0 +1,109 @@
+\begin{tikzpicture}
+
+
+ %--- Y
+ \node[obs]                               (y) {$y_n$};
+
+  %---- mu_n
+ \node[latent, above=1.5cmof y] (mun) {$\mathbf{\mu_n}$};
+
+  %---- X
+  \node[latent, above=4cm of mun, xshift=0cm]  (x) {$\mathbf{X}$};
+
+%------ dot dot b
+  \node[det, below= .5cm of x, xshift=-3.5cm]            (dotb) {*} ; %
+
+ %------ dotu dot uigj
+  \node[det, below= .5cm of x, xshift=3.5cm]            (dotu) {*} ; %
+
+ %---- b_i, v_i
+ \node[latent, left=3.75 of x]   (bi) {$b_i$};
+ \node[latent, left=1.75 of x]   (vi) {$v_i$};
+
+ %---- u_igj, z_i
+ \node[latent, right=1.75 of x]  (uigj) {$u_{ig_j}$};
+ \node[latent, right=3.75 of x]  (zi) {$z_i$};
+
+%-------Hyperparams
+% bi, vi
+\node[const, above=1  of bi]  (sigmabi) {$\sigma_b$}; %
+\node[const, above=1 of vi]  (pvi) {$v$}; %
+
+% uigj, zi
+\node[const, above=1  of uigj]  (sigmauigj) {$\sigma_g$} ; %
+\node[const, above=1 of zi]  (pzi) {$z$} ; %
+
+ % X
+ \node[const, above=1  of x, xshift=0cm]  (sigmax) {$\Sigma_x$} ; %
+
+%---- Factors
+%--x
+\factor[above=of x] {x-f} {left: \texttt{multi\_normal}} {sigmax} {x} ; %
+
+%-- bi
+\factor[above=of bi] {bi-f} {left: \texttt{normal}} {sigmabi} {bi} ;
+%-- vi
+\factor[above=of vi] {vi-f} {left: \texttt{bernoulli}} {pvi} {vi} ;
+
+%-- uigj
+\factor[above=of uigj] {uigj-f} {right: \texttt{normal}} {sigmauigj} {uigj} ;
+%-- vi
+\factor[above=of zi] {zi-f} {right: \texttt{bernoulli}} {pzi} {zi} ;
+
+ %--- y
+
+\factor[above=of y] {y-f} {left: \texttt{normal}} {mun} {y} ;
+
+
+
+%--- plates
+\plate {uplate} { %
+    (uigj)
+    (zi)
+    (dotu)
+}{$ \begin{aligned}
+    \forall g
+\in G_i\\ \forall j \in J_g
+\end{aligned}$ };
+
+
+
+\plate {bplate} { %
+    (bi)%
+    (vi)%
+    (dotb) %
+    (uplate)
+}{$ \forall i$ };
+
+\plate {yplate} { %
+    (y)(y-f)(y-f-caption) %
+    (mun) %
+  } {$\forall n$} ;
+
+ % sigma
+\node[latent, right=1cm of y-f] (sigma) {$\sigma$}; %
+
+% dot sigma
+
+ \node[det, right=0.5cmof sigma]            (dotsigma) {$\leftmapsto$} ; %
+
+
+ % R2
+\node[const, right=0.5cm of dotsigma]         (r2)   {$R^2_0$}; %
+
+ % edges
+ % Connect bi and vi to the dot node
+  \edge[-] {bi,vi} {dotb} ;
+
+  \edge[-] {uigj,zi} {dotu} ;
+
+  \edge[-] {dotb,dotu,x} {mun} ;
+
+  %\edge[-] {r2,mun} {dotsigma} ;
+  \edge[-] {r2} {dotsigma} ;
+
+  \edge[-]{sigma}{y-f}
+
+  \edge[-]{dotsigma}{sigma}
+
+\end{tikzpicture}

@@ -1,0 +1,292 @@
+\begin{thebibliography}{xx}
+
+\harvarditem[Armagan et~al.]{Armagan, Clyde \harvardand\
+  Dunson}{2011}{armagan2011generalized}
+Armagan, A., Clyde, M. \harvardand\ Dunson, D.~B.  \harvardyearleft
+  2011\harvardyearright , {Generalized beta mixtures of Gaussians}, {\em in}
+  `{Advances in neural information processing systems}', pp.~523--531.
+
+\harvarditem{Armagan, Dunson \harvardand\ Lee}{2013}{armagan2013generalized}
+Armagan, A., Dunson, D.~B. \harvardand\ Lee, J.  \harvardyearleft
+  2013\harvardyearright , `{Generalized double Pareto shrinkage}', {\em
+  Statistica Sinica} {\bf 23}(1),~119.
+
+\harvarditem{Armagan, Dunson, Lee, Bajwa \harvardand\
+  Strawn}{2013}{armagan2013posterior}
+Armagan, A., Dunson, D.~B., Lee, J., Bajwa, W.~U. \harvardand\ Strawn, N.
+  \harvardyearleft 2013\harvardyearright , `Posterior consistency in linear
+  models under shrinkage priors', {\em Biometrika} {\bf 100}(4),~1011--1018.
+
+\harvarditem{Bai \harvardand\ Ghosh}{2019}{bai2019large}
+Bai, R. \harvardand\ Ghosh, M.  \harvardyearleft 2019\harvardyearright ,
+  `Large-scale multiple hypothesis testing with the normal-beta prime prior',
+  {\em Statistics} {\bf 53}(6),~1210--1233.
+
+\harvarditem{Bateman}{1953}{bateman1953higher}
+Bateman, H.  \harvardyearleft 1953\harvardyearright , {\em Higher
+  Transcendental Functions [Volumes I-III]}, Vol.~1, McGraw-Hill Book Company.
+
+\harvarditem[Bhadra et~al.]{Bhadra, Datta, Polson \harvardand\
+  Willard}{2016}{bhadra2016horseshoe+}
+Bhadra, A., Datta, J., Polson, N.~G. \harvardand\ Willard, B.  \harvardyearleft
+  2016\harvardyearright , `The horseshoe+ estimator of ultra-sparse signals',
+  {\em Bayesian Analysis} .
+
+\harvarditem[Bhattacharya et~al.]{Bhattacharya, Chakraborty \harvardand\
+  Mallick}{2016}{Bhatt2016sampling}
+Bhattacharya, A., Chakraborty, A. \harvardand\ Mallick, B.  \harvardyearleft
+  2016\harvardyearright , `Fast sampling with gaussian scale-mixture priors in
+  high-dimensional regression', {\em Biometrika} {\bf 103}(4),~985--991.
+
+\harvarditem[Bhattacharya et~al.]{Bhattacharya, Pati, Pillai \harvardand\
+  Dunson}{2015}{bhattacharya2015dirichlet}
+Bhattacharya, A., Pati, D., Pillai, N.~S. \harvardand\ Dunson, D.~B.
+  \harvardyearleft 2015\harvardyearright , `Dirichlet--laplace priors for
+  optimal shrinkage', {\em Journal of the American Statistical Association}
+  {\bf 110}(512),~1479--1490.
+
+\harvarditem{Bingham}{1974}{bingham1974antipodally}
+Bingham, C.  \harvardyearleft 1974\harvardyearright , `An antipodally symmetric
+  distribution on the sphere', {\em The Annals of Statistics} pp.~1201--1225.
+
+\harvarditem{Bondell \harvardand\ Reich}{2012}{bondell2012consistent}
+Bondell, H.~D. \harvardand\ Reich, B.~J.  \harvardyearleft
+  2012\harvardyearright , `Consistent high-dimensional bayesian variable
+  selection via penalized credible regions', {\em Journal of the American
+  Statistical Association} {\bf 107}(500),~1610--1624.
+
+\harvarditem[Brown et~al.]{Brown, Fearn \harvardand\
+  Vannucci}{2001}{brown2001bayesian}
+Brown, P.~J., Fearn, T. \harvardand\ Vannucci, M.  \harvardyearleft
+  2001\harvardyearright , `Bayesian wavelet regression on curves with
+  application to a spectroscopic calibration problem', {\em Journal of the
+  American Statistical Association} {\bf 96}(454),~398--408.
+
+\harvarditem[Carvalho et~al.]{Carvalho, Polson \harvardand\
+  Scott}{2009}{carvalho2009handling}
+Carvalho, C.~M., Polson, N.~G. \harvardand\ Scott, J.~G.  \harvardyearleft
+  2009\harvardyearright , {Handling sparsity via the horseshoe}, {\em in}
+  `{International Conference on Artificial Intelligence and Statistics}',
+  pp.~73--80.
+
+\harvarditem[Carvalho et~al.]{Carvalho, Polson \harvardand\
+  Scott}{2010}{carvalho2010horseshoe}
+Carvalho, C.~M., Polson, N.~G. \harvardand\ Scott, J.~G.  \harvardyearleft
+  2010\harvardyearright , `{The Horseshoe estimator for sparse signals}', {\em
+  Biometrika} {\bf 97},~465--480.
+
+\harvarditem[Castillo et~al.]{Castillo, Schmidt-Hieber \harvardand\ van~der
+  Vaart}{2015}{castillo2015bayesian}
+Castillo, I., Schmidt-Hieber, J. \harvardand\ van~der Vaart, A.
+  \harvardyearleft 2015\harvardyearright , `Bayesian linear regression with
+  sparse priors', {\em The Annals of Statistics} {\bf 43}(5),~1986--2018.
+
+\harvarditem{{\relax DLMF}}{2015}{NISTDLMF}
+{\relax DLMF}  \harvardyearleft 2015\harvardyearright , `{NIST Digital Library
+  of Mathematical Functions}', http://dlmf.nist.gov/, Release 1.0.10 of
+  2015-08-07.
+\newblock Online companion to \cite{Olver2010NHMF}.
+\newline\harvardurl{http://dlmf.nist.gov/}
+
+\harvarditem{Fallaize \harvardand\ Kypraios}{2016}{fallaize2016exact}
+Fallaize, C.~J. \harvardand\ Kypraios, T.  \harvardyearleft
+  2016\harvardyearright , `Exact bayesian inference for the bingham
+  distribution', {\em Statistics and Computing} {\bf 26}(1-2),~349--360.
+
+\harvarditem{Fields}{1972}{fields1972asymptotic}
+Fields, J.~L.  \harvardyearleft 1972\harvardyearright , `{The asymptotic
+  expansion of the Meijer G-function}', {\em Mathematics of Computation}
+  pp.~757--765.
+
+\harvarditem{George \harvardand\ McCulloch}{1993}{george1993variable}
+George, E.~I. \harvardand\ McCulloch, R.~E.  \harvardyearleft
+  1993\harvardyearright , `{Variable selection via Gibbs sampling}', {\em
+  Journal of the American Statistical Association} {\bf 88}(423),~881--889.
+
+\harvarditem{Ghosh \harvardand\ Ghattas}{2015}{ghosh2015bayesian}
+Ghosh, J. \harvardand\ Ghattas, A.~E.  \harvardyearleft 2015\harvardyearright ,
+  `Bayesian variable selection under collinearity', {\em The American
+  Statistician} {\bf 69}(3),~165--173.
+
+\harvarditem{Griffin \harvardand\ Brown}{2010}{griffin2010inference}
+Griffin, J.~E. \harvardand\ Brown, P.~J.  \harvardyearleft
+  2010\harvardyearright , `{Inference with normal-gamma prior distributions in
+  regression problems}', {\em Bayesian Analysis} {\bf 5}(1),~171--188.
+
+\harvarditem{Griffin \harvardand\ Brown}{2013}{griffin2013some}
+Griffin, J.~E. \harvardand\ Brown, P.~J.  \harvardyearleft
+  2013\harvardyearright , `Some priors for sparse regression modelling', {\em
+  Bayesian Analysis} {\bf 8}(3),~691--702.
+
+\harvarditem[Haario et~al.]{Haario, Saksman \harvardand\
+  Tamminen}{2001}{haario2001adaptive}
+Haario, H., Saksman, E. \harvardand\ Tamminen, J.  \harvardyearleft
+  2001\harvardyearright , `An adaptive metropolis algorithm', {\em Bernoulli}
+  pp.~223--242.
+
+\harvarditem[Hans et~al.]{Hans, Dobra \harvardand\ West}{2007}{hans2007shotgun}
+Hans, C., Dobra, A. \harvardand\ West, M.  \harvardyearleft
+  2007\harvardyearright , `Shotgun stochastic search for large p regression',
+  {\em Journal of the American Statistical Association} {\bf
+  102}(478),~507--516.
+
+\harvarditem{Ishwaran \harvardand\ Rao}{2005}{ishwaran2005spike}
+Ishwaran, H. \harvardand\ Rao, J.~S.  \harvardyearleft 2005\harvardyearright ,
+  `{Spike and slab variable selection: Frequentist and Bayesian strategies}',
+  {\em Annals of Statistics} pp.~730--773.
+
+\harvarditem[Johnson et~al.]{Johnson, Kotz \harvardand\
+  Balakrishnan}{1995}{johnson1995continuous}
+Johnson, N., Kotz, S. \harvardand\ Balakrishnan, N.  \harvardyearleft
+  1995\harvardyearright , `Continuous univariate distributions, volume 2. john
+  wiley\&sons', {\em Inc.,} {\bf 75}.
+
+\harvarditem{Kent}{1982}{kent1982fisher}
+Kent, J.~T.  \harvardyearleft 1982\harvardyearright , `The fisher-bingham
+  distribution on the sphere', {\em Journal of the Royal Statistical Society.
+  Series B (Methodological)} pp.~71--80.
+
+\harvarditem[Kent et~al.]{Kent, Ganeiber \harvardand\
+  Mardia}{2013}{kent2013new}
+Kent, J.~T., Ganeiber, A.~M. \harvardand\ Mardia, K.~V.  \harvardyearleft
+  2013\harvardyearright , `A new method to simulate the bingham and related
+  distributions in directional data analysis with applications', {\em arXiv
+  preprint arXiv:1310.8110} .
+
+\harvarditem{Miller}{2006}{miller2006applied}
+Miller, P.~D.  \harvardyearleft 2006\harvardyearright , {\em Applied asymptotic
+  analysis}, Vol.~75, American Mathematical Soc.
+
+\harvarditem{Mitchell \harvardand\ Beauchamp}{1988}{mitchell1988bayesian}
+Mitchell, T.~J. \harvardand\ Beauchamp, J.~J.  \harvardyearleft
+  1988\harvardyearright , `Bayesian variable selection in linear regression',
+  {\em Journal of the American Statistical Association} {\bf
+  83}(404),~1023--1032.
+
+\harvarditem[Murray et~al.]{Murray, Ghahramani \harvardand\
+  MacKay}{2006}{murray2006}
+Murray, I., Ghahramani, Z. \harvardand\ MacKay, D.  \harvardyearleft
+  2006\harvardyearright , Mcmc for doubly-intractable distributions, {\em in}
+  `Proceedings of the 22nd annual conference on uncertainty in artificial
+  intelligence', AUAI Press, pp.~359--366.
+
+\harvarditem{Narisetty \harvardand\ He}{2014}{narisetty2014bayesian}
+Narisetty, N.~N. \harvardand\ He, X.  \harvardyearleft 2014\harvardyearright ,
+  `{Bayesian variable selection with shrinking and diffusing priors}', {\em The
+  Annals of Statistics} {\bf 42}(2),~789--817.
+
+\harvarditem[Olver et~al.]{Olver, Lozier, Boisvert \harvardand\
+  Clark}{2010}{Olver2010NHMF}
+Olver, F.~W.~J., Lozier, D.~W., Boisvert, R.~F. \harvardand\ Clark, C.~W., eds
+  \harvardyearleft 2010\harvardyearright , {\em {NIST Handbook of Mathematical
+  Functions}}, Cambridge University Press, New York, NY.
+\newblock Print companion to \cite{NISTDLMF}.
+
+\harvarditem[Ormerod et~al.]{Ormerod, You \harvardand\ M{\'
+  u}ller}{2017}{ormerod2017vb}
+Ormerod, J.~T., You, C. \harvardand\ M{\' u}ller, S.  \harvardyearleft
+  2017\harvardyearright , `A variational bayes approach to variable selection',
+  {\em Electronic Journal of Statistics} {\bf 11}(2),~3549--3594.
+
+\harvarditem[Osborne et~al.]{Osborne, Fearn, Miller \harvardand\
+  Douglas}{1984}{osborne1984application}
+Osborne, B.~G., Fearn, T., Miller, A.~R. \harvardand\ Douglas, S.
+  \harvardyearleft 1984\harvardyearright , `Application of near infrared
+  reflectance spectroscopy to the compositional analysis of biscuits and
+  biscuit doughs', {\em Journal of the Science of Food and Agriculture} {\bf
+  35}(1),~99--105.
+
+\harvarditem{Polson \harvardand\ Scott}{2010}{polson2010shrink}
+Polson, N.~G. \harvardand\ Scott, J.~G.  \harvardyearleft 2010\harvardyearright
+  , `Shrink globally, act locally: Sparse bayesian regularization and
+  prediction', {\em Bayesian Statistics} {\bf 9},~501--538.
+
+\harvarditem{Polson \harvardand\ Scott}{2012}{polson2012local}
+Polson, N.~G. \harvardand\ Scott, J.~G.  \harvardyearleft 2012\harvardyearright
+  , `Local shrinkage rules, l{\'e}vy processes and regularized regression',
+  {\em Journal of the Royal Statistical Society: Series B (Statistical
+  Methodology)} {\bf 74}(2),~287--311.
+
+\harvarditem[Raskutti et~al.]{Raskutti, Wainwright \harvardand\
+  Yu}{2011}{raskutti2011minimax}
+Raskutti, G., Wainwright, M.~J. \harvardand\ Yu, B.  \harvardyearleft
+  2011\harvardyearright , `Minimax rates of estimation for high-dimensional
+  linear regression over $\ell_q $-balls', {\em IEEE transactions on
+  information theory} {\bf 57}(10),~6976--6994.
+
+\harvarditem{Ro{\v{c}}kov{\'a} \harvardand\ George}{2014}{rovckova2014emvs}
+Ro{\v{c}}kov{\'a}, V. \harvardand\ George, E.~I.  \harvardyearleft
+  2014\harvardyearright , `Emvs: The em approach to bayesian variable
+  selection', {\em Journal of the American Statistical Association} {\bf
+  109}(506),~828--846.
+
+\harvarditem{Ro{\v{c}}kov{\'a} \harvardand\ George}{2018}{rovckova2018spike}
+Ro{\v{c}}kov{\'a}, V. \harvardand\ George, E.~I.  \harvardyearleft
+  2018\harvardyearright , `The spike-and-slab lasso', {\em Journal of the
+  American Statistical Association} {\bf 113}(521),~431--444.
+
+\harvarditem{Scott \harvardand\ Varian}{2014}{scott2014predicting}
+Scott, S.~L. \harvardand\ Varian, H.~R.  \harvardyearleft 2014\harvardyearright
+  , `Predicting the present with bayesian structural time series', {\em
+  International Journal of Mathematical Modelling and Numerical Optimisation}
+  {\bf 5}(1-2),~4--23.
+
+\harvarditem{Seshadri}{1997}{seshadri1997halphen}
+Seshadri, V.  \harvardyearleft 1997\harvardyearright , `Halphen's laws', {\em
+  Encyclopedia of statistical sciences} .
+
+\harvarditem{Song \harvardand\ Liang}{2017}{song2017nearly}
+Song, Q. \harvardand\ Liang, F.  \harvardyearleft 2017\harvardyearright ,
+  `Nearly optimal bayesian shrinkage for high dimensional regression', {\em
+  arXiv preprint arXiv:1712.08964} .
+
+\harvarditem[Szak{\'a}cs et~al.]{Szak{\'a}cs, Annereau, Lababidi, Shankavaram,
+  Arciello, Bussey, Reinhold, Guo, Kruh \harvardand\
+  Reimers}{2004}{szakacs2004predicting}
+Szak{\'a}cs, G., Annereau, J.-P., Lababidi, S., Shankavaram, U., Arciello, A.,
+  Bussey, K.~J., Reinhold, W., Guo, Y., Kruh, G.~D. \harvardand\ Reimers, M.
+  \harvardyearleft 2004\harvardyearright , `Predicting drug sensitivity and
+  resistance: profiling abc transporter genes in cancer cells', {\em Cancer
+  cell} {\bf 6}(2),~129--137.
+
+\harvarditem[van~der Pas et~al.]{van~der Pas, Kleijn \harvardand\ van~der
+  Vaart}{2014}{van2014horseshoe}
+van~der Pas, S.~L., Kleijn, B.~J. \harvardand\ van~der Vaart, A.~W.
+  \harvardyearleft 2014\harvardyearright , `The horsveshoe estimator: Posterior
+  concentration around nearly black vectors', {\em Electronic Journal of
+  Statistics} {\bf 8}(2),~2585--2618.
+
+\harvarditem[van~der Pas et~al.]{van~der Pas, Szab{\'o} \harvardand\ van~der
+  Vaart}{2017{\em a}}{van2017adaptive}
+van~der Pas, S., Szab{\'o}, B. \harvardand\ van~der Vaart, A.  \harvardyearleft
+  2017{\em a}\harvardyearright , `Adaptive posterior contraction rates for the
+  horseshoe', {\em Electronic Journal of Statistics} {\bf 11}(2),~3196--3225.
+
+\harvarditem[van~der Pas et~al.]{van~der Pas, Szab{\'o} \harvardand\ van~der
+  Vaart}{2017{\em b}}{van2017uncertainty}
+van~der Pas, S., Szab{\'o}, B. \harvardand\ van~der Vaart, A.  \harvardyearleft
+  2017{\em b}\harvardyearright , `Uncertainty quantification for the horseshoe
+  (with discussion)', {\em Bayesian Analysis} {\bf 12}(4),~1221--1274.
+
+\harvarditem{Zellner \harvardand\ Siow}{1980}{zellner1980posterior}
+Zellner, A. \harvardand\ Siow, A.  \harvardyearleft 1980\harvardyearright ,
+  `Posterior odds ratios for selected regression hypotheses', {\em Trabajos de
+  estad{\'\i}stica y de investigaci{\'o}n operativa} {\bf 31}(1),~585--603.
+
+\harvarditem{Zhang \harvardand\ Bondell}{2018}{zhang2018variable}
+Zhang, Y. \harvardand\ Bondell, H.~D.  \harvardyearleft 2018\harvardyearright ,
+  `Variable selection via penalized credible regions with dirichlet--laplace
+  global-local shrinkage priors', {\em Bayesian Analysis} {\bf
+  13}(3),~823--844.
+
+\harvarditem{Zhou \harvardand\ Carin}{2015}{zhou2015negative}
+Zhou, M. \harvardand\ Carin, L.  \harvardyearleft 2015\harvardyearright ,
+  `{Negative binomial process count and mixture modeling}', {\em Pattern
+  Analysis and Machine Intelligence, IEEE Transactions on} {\bf
+  37}(2),~307--320.
+
+\harvarditem{Zwillinger}{2014}{zwillinger2014table}
+Zwillinger, D.  \harvardyearleft 2014\harvardyearright , {\em {Table of
+  integrals, series, and products}}, Elsevier.
+
+\end{thebibliography}

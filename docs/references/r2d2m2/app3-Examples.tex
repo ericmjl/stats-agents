@@ -1,0 +1,182 @@
+
+\section{Examples}
+\label{section:appendixC}
+
+\subsection{Simulation Based Calibration}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l|l|l}
+Description & Hyperparameter  & {Values}                                      \\ \hline
+Number of simulations & $T$ & 100 \\
+Number of iterations  & $S$ & 3000 \\
+Groups  & $K$             & $\{0,1\}$                                         \\
+Levels & $L$             & 20                                                \\
+Covariates & $p$             & $\{10,100,300\}$                                  \\
+Prior mean of $R^2$ &$\mu_{R^2}$     & $\{0.1,0.5\}$                                 \\
+Prior precision of $R^2$& $\varphi_{R^2}$ & $\{0.5,1\}$                                     \\
+Concentration parameter & $a_\pi$         & \textbf{$\{0.5,1\}$}                          \\
+Covariance matrix of $x$ & $\Sigma_x$      & $\{I_p, AR(\rho) \}$ where $\rho \in \{0.5\}$ \\
+\end{tabular}
+\caption{Values assigned to the hyperparameters in the Simulation Based Calibration experiment \ref{subsection:SBC}.}
+\label{tab:sbchyperparams}
+\end{table}
+
+
+\subsection{Simulations from sparse multilevel models}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l|l|l}
+Description & Hyperparameter  & {Values}                                      \\ \hline
+True value of $R^2$ & $R^2_0$      & $\{0.25,0.75\}$                                     \\
+Groups  & $K$             & $\{1,3\}$                                         \\
+Levels & $L$             & 20                                                \\
+Covariates & $p$             & $\{10,100,300\}$                                  \\
+Prior mean of $R^2$ &$\mu_{R^2}$     & $\{0.1,0.5\}$                                 \\
+Prior precision of $R^2$& $\varphi_{R^2}$ & $\{0.5,1\}$                                     \\
+Concentration parameter & $a_\pi$         & \textbf{$\{0.5,1\}$}                          \\
+Covariance matrix of $x$ & $\Sigma_x$      & $\{I_p, AR(\rho) \}$ where $\rho \in \{0.5\}$ \\
+Level of induced sparsity &$v, z$      & $\{0.5,0.95\}$
+\end{tabular}
+\caption{Values assigned to the hyperparameters in the data generating process in experiment \ref{subsection:GeneralSimMLM}.  }
+\label{tab:sim2datahyperparams}
+\end{table}
+%-----
+
+\subsubsection{Additional tables and figures}
+
+%--- Pred table K=3
+\begin{table}[H]
+\centering
+\caption{Predictive Table results with $K=3$.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\hline
+\multicolumn{10}{c}{Scenario $K=3, \rho=0,  p_i=0.95, R_0^2=0.75, N=200$} \\
+ \hline
+p & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & RMSE & 0.05 & 0.09 & 0.08 & 0.09 & 0.04 & 0.06 & 0.09 & 0.03 \\
+   & elpd & -477 & -491 & -491 & -461 & -470 & -478 & -497 & -499 \\
+   & $\meff$ & 71 & 93 & 90 & 80 & 71 & 115 & 84 & 88 \\
+  100 & RMSE & 0.01 & 0.01 & 0.01 & 0.02 & 0.01 & 0.02 & 0.02 & 0.02 \\
+   & elpd & -2700 & -3049 & -3806 & -3440 & -2899 & -2920 & -2744 & -3681 \\
+   & $\meff$  & 1109 & 1402 & 1388 & 1764 & 1101 & 1213 & 1260 & 1629 \\
+  300 & RMSE & 0.02 & 0.02 & 0.01 & 0.02 & 0.01 & 0.01 & 0.02 & 0.01 \\
+   & elpd & -6210 & -4413 & -7064 & -6285 & -4480 & -3413 & -6471 & -5501 \\
+   & $\meff$ & 2532  & 2104 & 2461 & 2722 & 2025 & 1669 & 2642 & 2405 \\
+   \hline
+\end{tabular}
+}
+\label{tab:predtab3}
+ \begin{tablenotes}
+      \small
+      \item  The table shows results for the Root Mean Squared Error (RMSE), expected logpointwise predictive density (elpd) on the test set and the effective number of nonzero coefficients $\meff$. .
+\end{tablenotes}
+\end{table}
+
+%--- Error table K=3
+\begin{table}[H]
+\centering
+\caption{Error Table $K=3$}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llllllllll}
+\hline
+\multicolumn{9}{c}{Scenario $K=3, \rho=0,  p_i=0.95, R_0^2=0.75, N=200, \alpha=0.05$ } \\
+  \hline
+p & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & Type I error & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) \\
+   & Type II error & 0.34 (0.32) & 0.32 (0.24) & 0.23 (0.13) & 0.31 (0.18) & 0.23 (0.21) & 0.21 (0.13) & 0.17 (0.17) & 0.22 (0.20) \\
+   & FDR & 0.12 (0.00) & 0.11 (0.00) & 0.11 (0.00) & 0.11 (0.00) & 0.03 (0.00) & 0.08 (0.00) & 0.15 (0.01) & 0.02 (0.00) \\
+   & TNDR & 0.99 (0.95) & 0.98 (0.96) & 0.98 (0.98) & 0.98 (0.97) & 0.99 (0.96) & 0.99 (0.98) & 0.98 (0.97) & 0.99 (0.97) \\
+  100 & Type I error & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) \\
+   & Type II error & 0.50 (0.37) & 0.48 (0.39) & 0.40 (0.33) & 0.52 (0.35) & 0.35 (0.27) & 0.47 (0.35) & 0.49 (0.37) & 0.51 (0.30) \\
+   & FDR & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.02 (0.02) & 0.01 (0.00) \\
+   & TNDR & 0.99 (0.97) & 0.99 (0.98) & 0.99 (0.98) & 0.99 (0.97) & 0.99 (0.98) & 0.99 (0.97) & 0.99 (0.97) & 0.99 (0.98) \\
+  300 & Type I error & 0.01 (0.01) & 0.01 (0.01) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) \\
+   & Type II error & 0.83 (0.72) & 0.89 (0.80) & 0.85 (0.76) & 0.90 (0.78) & 0.82 (0.73) & 0.85 (0.81) & 0.87 (0.75) & 0.87 (0.80) \\
+   & FDR & 0.02 (0.02) & 0.02 (0.02) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) \\
+   & TNDR & 0.99 (0.96) & 0.99 (0.95) & 0.99 (0.96) & 0.99 (0.96) & 0.99 (0.96) & 0.99 (0.95) & 0.99 (0.95) & 0.99 (0.95) \\
+   \hline
+\end{tabular}
+}
+\begin{tablenotes}
+     \small
+     \item We show the results for all the coefficients as well as results for the overall coefficients inside the parenthesis. The numbers 1-8 indicate the hyperparameter setup used.
+\end{tablenotes}
+\label{tab:errortab2}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Coverage Table $K=3$}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllllllllll}
+\hline
+\multicolumn{10}{c}{Scenario $K=3, \rho=0,  p_i=0.95, R_0^2=0.75, N=200 , \alpha=0.05$} \\
+  \hline
+p & Description & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & All & Coverage & 0.99 (0.42) & 0.99 (0.46) & 0.98 (0.46) & 0.98 (0.43) & 0.99 (0.47) & 0.99 (0.51) & 0.98 (0.41) & 0.99 (0.60) \\
+   &  & Width & 0.79 (1.50) & 0.94 (2.16) & 1.00 (2.06) & 0.96 (2.04) & 0.80 (2.02) & 0.94 (2.14) & 1.01 (1.87) & 0.84 (1.84) \\
+   & Overall & Coverage & 0.97 (0.80) & 0.97 (0.77) & 0.98 (0.90) & 0.96 (0.74) & 0.97 (0.80) & 0.97 (0.80) & 0.98 (0.88) & 0.98 (0.86) \\
+   &  & Width & 0.46 (0.75) & 0.55 (0.82) & 0.58 (0.89) & 0.57 (0.80) & 0.48 (0.73) & 0.55 (0.81) & 0.57 (0.84) & 0.51 (0.72) \\
+  100 & All & Coverage & 0.99 (0.39) & 0.99 (0.33) & 0.99 (0.37) & 0.99 (0.33) & 0.99 (0.40) & 0.99 (0.37) & 0.99 (0.34) & 0.99 (0.36) \\
+   &  & Width & 1.07 (1.42) & 0.95 (1.54) & 0.96 (1.09) & 1.16 (1.59) & 0.96 (1.35) & 1.06 (1.52) & 1.01 (1.38) & 1.20 (1.67) \\
+   & Overall & Coverage & 0.98 (0.73) & 0.97 (0.55) & 0.98 (0.68) & 0.97 (0.53) & 0.98 (0.71) & 0.97 (0.54) & 0.98 (0.69) & 0.97 (0.59) \\
+   &  & Width & 0.82 (1.42) & 0.75 (1.43) & 0.74 (1.34) & 0.91 (1.50) & 0.73 (1.33) & 0.85 (1.42) & 0.77 (1.37) & 0.95 (1.57) \\
+  300 & All & Coverage & 0.98 (0.29) & 0.98 (0.26) & 0.99 (0.29) & 0.99 (0.28) & 0.99 (0.30) & 0.99 (0.22) & 0.99 (0.28) & 0.99 (0.29) \\
+   &  & Width & 1.32 (1.55) & 1.29 (1.51) & 1.27 (1.55) & 1.37 (1.53) & 1.26 (1.58) & 1.23 (1.37) & 1.39 (1.61) & 1.36 (1.62) \\
+   & Overall & Coverage & 0.95 (0.34) & 0.94 (0.23) & 0.96 (0.35) & 0.96 (0.24) & 0.96 (0.33) & 0.96 (0.25) & 0.96 (0.35) & 0.96 (0.24) \\
+   &  & Width & 1.21 (2.03) & 1.19 (1.79) & 1.15 (1.95) & 1.26 (1.91) & 1.16 (2.01) & 1.14 (1.73) & 1.27 (2.16) & 1.26 (1.92) \\
+   \hline
+\end{tabular}
+}
+\begin{tablenotes}
+     \small
+     \item Credibility intervals were formed at a $\alpha=0.05$ level. We show results for the set of all coefficients mentioned in the description and for the non-zero corresponding cases inside parenthesis. The numbers 1-8 indicate the hyperparameter setup used.
+\end{tablenotes}
+\end{table}
+
+%----------- Images for when K=3
+%-----------
+ \begin{figure}[H]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.23\textheight]{images/lpd_plots/elpd_test_3.pdf}
+	\caption{ Densities of the $\elpd$ estimators on the test set as $p$ increases and arranged by hyperparameter configurations when $K=3$. The vertical lines inside each density represent the $5\%, 50\%, 95\%$ quantiles from left to right respectively. This shows that, in average, we can expect similar results, however for single realizations differences can be observed due to the heavy tails present. Hence, proper hyperparameter specification should be done.  }
+	\label{fig:lpd_test_3_ridges}
+\end{figure}
+%-----------
+%-----------
+ \begin{figure}[H]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.20\textheight]{images/meff_plots/meff_3.pdf}
+	\caption{Densities of the posterior median of the effective number of coefficients per hyperparameter configuration and number of covariates when $K=3$. }
+	\label{fig:post_meff_3}
+\end{figure}
+%-----------
+
+%--------------------
+\begin{figure}[H]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.95\textwidth, height=0.23\textheight]{images/meff-vs-lpd_plots/vs_meff-lpd_group_3.pdf}
+	\caption{Relationship between $\elpd$ and shrinkage by hyperparameter configuration when $K=3$. The non-linear relationships described by the colored lines in general shows a decreasing behavior as $\meff$ increases. }
+	\label{fig:meff-vs-lpd-grouped_3}
+\end{figure}
+
+\begin{figure}[H]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.33\textheight]{images/roc_plots/roc_plot_ALL_3.pdf}
+	\caption{ROC curves for all the coefficients arranged by hyperparameter configurations when $K=3$. Points are calculated by moving $\alpha$ when forming credibility intervals. Notice that the shape of the curve is due to the fact that even for high values of $\alpha$, False Positive Rates don't increase. All ROC curves shown are above the identity line.}
+	\label{fig:roc_ALL_3}
+\end{figure}
+%-----------
+ \begin{figure}[H]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.33\textheight]{images/roc_plots/roc_plot_OC_3.pdf}
+	\caption{ROC curves for the overall coefficients when $K=3$. Points are calculated by moving $\alpha$ when forming credibility intervals. Notice that the upper bound on the curve is due to the fact that even for high values of $\alpha$, False Positive Rates don't increase. All ROC curves shown are above the identity line.}
+	\label{fig:roc_OC_3}
+\end{figure}
+%-----------

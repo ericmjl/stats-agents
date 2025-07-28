@@ -1,0 +1,226 @@
+\section{Proofs}
+\label{appendixA}
+
+%--------------------- Marginal distribution of b and u
+
+\subsection*{Proof of proposition \ref{prop:marginalpriors}}
+
+We provide a proof for the overall coefficients $b_i, i=1,...,p.$. The case of the varying coefficients $u_{ig_j}$ is handled similarly. We begin by providing an alternative parametrization of the R2D2M2 prior which is used in the proofs of propositions  \ref{prop:marginalpriors},\ref{prop:originprior}, and \ref{prop:tailprior}. The case of the varying coefficients is done in a similar way. \\
+
+The prior for $b_i$ is  given by
+    %---
+	\begin{align}
+	\tau^2 \sim \betaprime (a_1, a_2),  \phi \sim \dirichlet (\alpha), b_i| \phi, \tau^2,\sigma^2 \sim \normal \left(0, \frac{\sigma^2}{\sigma_{x_i}^2} \phi_i \tau^2  \right),
+	\end{align}
+	%---
+	where $a_1=\mu_{R^2}\varphi_{R^2}, a_2=(1-\mu_{R^2})\varphi_{R^2}$. An observation from $\tau^2 \sim \betaprime (a_1, a_2)$ can be simulated by the chain (\cite{r2d2zhang})
+
+	\begin{align*}
+		\tau^2 | \xi \sim \gammadist (a_1, \xi), \ \
+		\xi \sim \gammadist(a_2, 1) ,
+	\end{align*}
+	%---
+	where $\gammadist(a,b)$ denotes a Gamma distribution with shape $a$ and rate $b$. This provides an alternative representation of the R2D2M2 prior given by
+
+	\begin{equation}
+	\label{eq:r2d2altparam1}
+	\begin{aligned}
+	\xi \sim \gammadist(a_2, 1) , \tau^2 | \xi \sim \gammadist (a_1, \xi),  \phi \sim \dirichlet (\alpha) \\
+	b_i| \phi, \tau^2,\sigma^2 \sim \normal \left(0, \frac{\sigma^2}{\sigma_{x_i}^2} \phi_i \tau^2  \right)
+	\end{aligned}
+	\end{equation}
+
+	Let $\alpha$ consist of a single repeating element $a_\pi$, where $a_\pi= \frac{a_1}{\text{dim}(\alpha)}=\frac{\mu_{R^2}\varphi_{R^2}}{\text{dim}(\alpha)}$. This is an automatic way of specifying $a_\pi$ given that the user has provided a prior mean $\mu_{R^2}$ and a prior variance $\varphi_{R^2}$ for $R^2$. Then it follows that $\phi_{i} \tau^2 | \xi \sim \gammadist( a_\pi, \xi )$. By definition, $\lambda_{i}^2= \phi_{i}\tau^2$ and we can write the prior for $b _{i}$ as
+	%----
+	\begin{align}
+	\label{eq:r2d2altparam3}
+		\xi \sim \gammadist (a_2, 1) , \lambda_{i}^2| \xi \sim \gammadist \left( a_\pi, \xi \right) ,
+		 b_{i} | \sigma^2, \lambda_{i}^2 \sim \normal \left( 0, \frac{\sigma^2}{\sigma_{x_i}^2 } \lambda_i^2   \right),
+	\end{align}
+	%----
+	or as
+	%----
+	\begin{align*}
+		\lambda_{i}^2 \sim \betaprime \left( a_\pi, a_2 \right),
+		b_{i} |  \sigma^2, \lambda_{i}^2 \sim \normal \left( 0, \frac{\sigma^2}{\sigma_{x_i}^2 } \lambda_i^2\right).
+	\end{align*}
+
+	Let $q_i^2=\frac{\sigma^2}{\sigma_{x_i}^2}$, the prior marginal density of $b_i$ is given by
+
+	\begin{align*}
+		p( b_i | \sigma) &= \int_0^\infty \frac{1}{\sqrt{2\pi q_i^2 \lambda_{i}}^2 }\exp \left\lbrace  -\frac{ b_i^2  }{ 2 q_i^2\lambda_{i}^2}    \right\rbrace \frac{1}{\text{B}(a_\pi, a_2) } (\lambda_{i}^2)^{a_\pi-1} \left( \lambda_{i}^2+1
+		\right)^{-a_\pi -a_2} d\lambda_{i}^2 \\
+		&= \frac{1}{\sqrt{2\pi q_i^2} \text{B}(a_\pi, a_2) } \int_0^\infty \exp \left\lbrace  -\frac{ b_{i}^2  }{ 2q_i^2} t_i    \right\rbrace t_i^{\eta-1} (t_i+1)^{ \nu-\eta-1  } dt_i\\
+		&= \frac{1}{ \sqrt{2\pi q_i^2} \text{B}(a_\pi, a_2) } \Gamma(\eta) U( \eta, \nu, z_i ),
+	\end{align*}
+
+	where $t_i=\frac{1}{\lambda_i^2}$, $\eta=a_2+1/2$ and $\nu= 3/2-a_\pi$. $U(\eta, \nu, z_i)$ represents the confluent hypergeometric function of the second kind (see \cite{Zwillinger}) and $z_i=\frac{|b_i|^2}{2q_i^2}$. $U(\eta,\nu, z_i)$ is defined as long as the real part of $\eta$ and $z_i$ are positive, which is always the case since $a_2>0, q_i^2>0$ and $|b_i|>0$. \\
+
+%-------------------- Behavior around the origin
+
+\subsection*{Proof of proposition \ref{prop:originprior}}
+
+The confluent hypergeometric function of the second kind $U(\eta, \nu, z)$ satisfies the following equation (see equation 13.2.40 \cite{nisthandbook})
+
+
+\begin{align}
+\label{eq:Utransformation}
+   U(\eta,\nu, z)=z^{1-\nu} U(\eta-\nu+1, 2-\nu, z).
+\end{align}
+
+We drop the index in $z$ since all cases are handled equally. Substituting $\eta=a_2+1/2, \nu= 3/2-a_\pi$ and $z= \frac{t^2}{2q^2}$ results in
+
+\[ U\left(a_2+1/2, 3/2-a_\pi, \frac{t^2}{2q^2} \right)= (2q^2)^{1/2-a_\pi} t^{2a_\pi-1} U\left(a_2+a_\pi, a_\pi+1/2,  \frac{t^2}{2q^2}\right).\]
+
+The right hand side has a singularity at $t=0$ when $a_\pi<1/2$.  \\
+
+The limiting form $U$ has as $|z|\to 0$ follows equation 13.2.18 in \cite{nisthandbook} given by
+
+\[  U(\eta, \nu, z)= \frac{\Gamma(\nu-1)}{\Gamma(\eta)} z^{1-
+\nu}+\frac{\Gamma(1-\nu)}{\Gamma(\eta-\nu+1)} +\mathcal{O}\left( z^{2-\nu}\right) , \ \ 1< \nu <2 .\]
+
+Substituting $\eta=a_2+1/2, \nu= 3/2-a_\pi$ and $z= \frac{t^2}{2q^2}$ results in
+\begin{align*}
+U\left( a_2+1/2, 3/2-a_\pi, \frac{t^2}{2q^2}\right)= C t^{2a_\pi-1} + \frac{\Gamma(a_\pi+1/2)}{\Gamma(a_2+1/2)} +\mathcal{O}\left( |t|^{1+2a_\pi} \right) , \ \ 0< a_\pi <1/2 ,
+\end{align*}
+
+where $C= (2q^2)^{1/2-a_\pi} \frac{\Gamma(1/2-a_\pi)}{\Gamma(a_2+1/2)}$. The last expression is unboounded at $t=0$ when $a_\pi<1/2$. The case when $a_\pi=1/2$ follows equation 13.2.19 given by
+
+\[  U(\eta, \nu, z)= -\frac{1}{\Gamma(\nu)}\left( \ln(z)+\psi(\eta)+2\gamma \right)  +\mathcal{O}\left(  z \ln (z)  \right) , \ \ 1< \nu <2 ,\]
+
+where $\psi(\cdot), \gamma$ represent the digamma function and the Euler-Mascheroni constant respectively. Substituting $\eta=a_2+1/2, \nu=3/2-a_\pi$ and $z=\frac{t^2}{2q^2}$ gives
+
+\begin{align*}
+U\left( a_2+1/2, 3/2-a_\pi, \frac{t^2}{2q^2}\right)&= -\frac{1}{\Gamma(a_2+1/2)}\left( \ln\left( \frac{t^2}{2q^2} \right)+\psi(a_2+1/2)+2\gamma \right) \\&\qquad +\mathcal{O}\left(  t^2 \ln \left(\frac{t^2}{2q^2} \right) \right).
+\end{align*}
+
+The last expression is not defined at $t=0$ and as $|t| \to 0$ it goes to infinity. To see the marginal priors are bounded when $a_\pi>1/2$ it is sufficient to consider the cases given by equations 13.2.20-13.2.22 in  \cite{nisthandbook} and making the proper substitutions of $\eta=a_2+1/2, \nu= 3/2-a_\pi$ and $z=\frac{t^2}{2q^2} $. In terms of the values  $a_\pi$ takes we have
+
+\begin{align*}
+U(\eta, \nu, t)&\sim
+\begin{cases}
+	 \mathcal{O} \left( t^{2a_\pi-1}   \right), \ \ \  &1/2<a_\pi<3/2 \\
+	 \mathcal{O} \left( t^2 \ln(t^2/2)   \right), \ \ \  &a_\pi=3/2 \\
+	 \mathcal{O} \left( t^2  \right), \ \ \  &a_\pi>3/2 \\
+\end{cases}
+\end{align*}
+
+The derivative of $U(\eta, \nu, z)$ is given by equation 13.3.22 in \cite{nisthandbook} as
+
+\[ \frac{d}{dz}  U(\eta, \nu, z)= - \eta U(\eta+1, \nu+1, z).   \]
+
+Combining this with Equation \eqref{eq:Utransformation} we have
+
+\[  \frac{d}{dz}  U(\eta, \nu, z) = -\eta z^{-\nu} U(\eta-\nu  +1, 1- \nu, z ).    \]
+
+Substituting $\eta=a_2+1/2, \nu= 3/2-a_\pi$ and $z= \frac{t^2}{2q^2}$ results in
+
+
+\begin{align}
+\label{eq:dudt}
+\frac{d}{dt}  U\left( a_2+1/2 , 3/2-a_\pi , \frac{t^2}{2q^2} \right) = C t^{2a_\pi-2} U\left( a_2+a_\pi, a_\pi-1/2, \frac{t^2}{2q^2} \right),
+\end{align}
+
+where $C=-(a_2+1/2)2^{3/2-a_\pi}(q^2)^{1/2-a_\pi}$. Equation \eqref{eq:dudt} is undefined at $t=0$ when $a_\pi<1$.
+
+Making $t=b_i$ or $t=u_{ig_j}$ proves the proposition. \\
+
+
+%-------------------- Asymptotic behavior of prior marginal distribution of coefficients b_i, u_{i g_j}
+
+\subsection*{Proof of proposition \ref{prop:tailprior}}
+
+To prove the proposition we make use of Watson's lemma as found in \cite{appliedasymptotic}.
+
+\begin{lemma}[Watson's lemma]
+Let $0\leq T \leq \infty$ be fixed. Assume $f(t)= t^{\lambda} g(t)$, where $g(t)$ has an infinite number of derivatives in the neighborhood of $t=0$, with $g(0)\neq 0$, and $\lambda > -1$. Suppose, in addition, either that $ |f(t)| < K e^{ct}$ for any $t>0$, where $K$ and $c$ are independent of $t$. Then it is true that for all positive $x$ that
+\[  \left| \int_0^T e^{-xt} f(t) dt \right| <\infty  \]
+and that the following asymptotic equivalence holds:
+
+\[	\int_0^T e^{-xt} f(t) dt  \sim \sum_{n=0}^\infty \frac{ g^{(n)}(0) \Gamma \left( \lambda+n+1 \right) }{n! x^{\lambda+n+1 }}	,\]
+for $x>0$ as $x\to \infty$. \\
+\end{lemma}
+
+The marginal distribution of an overall coefficient $b$ is given by
+
+\begin{align*}
+    p(b|\sigma)&= \frac{1}{\sqrt{2\pi q^2} \text{B}(a_\pi, a_2) } \int_{0}^\infty \exp \left\lbrace  -\frac{|b|^2}{2q^2} t \right\rbrace t^{\eta-1} (t+1)^{\nu-\eta-1}  dt \\   &= \int_0^\infty \exp \left\lbrace  -z t  \right\rbrace f(t) dt ,
+\end{align*}
+
+
+where $ z=\frac{|b|^2}{2q^2},f(t)= C \, t^{\eta-1} (t+1)^{\nu-\eta-1} = t^{\eta-1} g(t), C=  \left(\sqrt{2\pi q^2} \text{B}(a_\pi, a_2) \right)^{-1},$ and $g(t)=C \,(t+1)^{\nu-\eta-1}$.  If we make $\lambda=\eta-1$, the hypothesis $\lambda >-1$ is satisfied since $a_2-1/2 > -1$ for $a_2>0$. $g(t)$ is infinitely differentiable around $t=0$ and $g(0)=0$. By Watson's Lemma, since $|f(t)|< K e^{ct}$ for all $t>0$ where $K$ and $c$ are independent of $t$, then as $|b| \to \infty,$
+
+\[  p(z|\sigma)= \sum_{n=0}^\infty  \frac{g^{(n)}(0) \Gamma(\lambda+n+1)}{n! z^{\lambda+n+1}}.         \]
+
+Truncating the sum at $n=2$ gives
+
+\begin{align*}
+    p(z|\sigma)&= C\left\lbrace \frac{ \Gamma(a_2+1/2)}{z^{a_2+1/2}} -
+    \frac{ (a_\pi+a_2) \Gamma(a_2+3/2)}{z^{a_2+3/2}}+
+    \frac{ (a_\pi+a_2) (a_\pi+a_2+1) \Gamma(a_2+5/2)}{z^{a_2+5/2}}  \right\rbrace  \\
+    &\qquad + \mathcal{O}\left(  \frac{1}{ z^{a_2+7/2}}\right) \\
+    &\sim \mathcal{O} \left(  \frac{1}{ z^{a_2+1/2}}\right).
+\end{align*}
+
+Therefore $p\left( |b| \,|\,\sigma \right)\sim \mathcal{O} \left(  \frac{1}{ |b|^{2a_2+1}}\right)$. When $a_2< 1/2$ as $|b|\to \infty$ and comparing with $\frac{1}{b^2}$ we have that
+
+\[ \frac{p(b|\sigma)}{ \frac{1}{b^2} } \sim \mathcal{O} \left( \frac{ 1 }{ b^{2a_2-1}  } \right)      \to \infty  . \]
+
+\subsection*{Proof of proposition \ref{prop:r2d2bounded}}
+
+We will first show that the R2D2M2 prior can be represented as Horseshoe type prior \citep{Horseshoe}. We then proceed to make use of Theorem 2 and Theorem 3 in \cite{Horseshoe} to show that the R2D2M2 prior with normal base distributions for the coefficients is of bounded influence.
+
+Consider representation \eqref{eq:r2d2altparam3} of the R2D2M2 prior given by
+
+\begin{align*}
+    b_i | \sigma, \lambda_i^2 \sim \normal(0, \sigma^2 \lambda_i^2), \ \
+    \lambda_i^2 | \xi \sim \gammadist(a_\pi, \xi), \ \  \xi \sim \gammadist(a_2,1).
+\end{align*}
+
+It can be shown that this representation is equivalent to
+
+	\begin{align*}
+		b_{i} |  \sigma^2, \lambda_{i}^2 \sim \normal \left( 0, \sigma^2 \lambda_i^2 \right), \ \ \lambda_{i}^2 \sim \betaprime \left( a_\pi, a_2 \right).
+	\end{align*}
+
+When $a_\pi=1/2$ and $a_2=1/2$, then $\lambda_i \sim \text{Cauchy}^+(0,1)$ and we have
+
+\begin{align*}
+        b_i | \sigma, \lambda_i^2 \sim \normal(0, \sigma^2 \lambda_i^2), \ \
+        \lambda_i \sim \text{Cauchy}^+(0,1).
+\end{align*}
+
+The Horseshoe prior \citep{HorseshoeProceedings} has the following representation:
+%-------------
+\begin{align*}
+    b_i | \lambda_i, w &\sim \normal(0, w^2 \lambda_i^2)\\
+    \lambda_i &\sim \text{Cauchy}^+(0,1),
+\end{align*}
+%-------------
+where $\lambda_i$ are the local shrinkage parameters and $w$ is the global shrinkage parameter. Therefore the R2D2M2 prior can be represented as a Horseshoe type prior where the global scale is fixed and $w=1$. In the following consider $\sigma=1$ and $y|b \sim  \normal(b,1)$, since by hypothesis there are no varying coefficients in the model. Theorem 2 in \cite{Horseshoe} shows that conditioned on one sample $y^*$, we can write
+%-------------
+\begin{align}
+\label{eq:postmeannormalmeans}
+    \mathbb{E}(b|y^*)= y^*+ \frac{d}{dy^*}\log m(y^*),
+\end{align}
+%-------------
+where $m(y^*)$ is the marginal density for $y^*$ given by $m(y^*)=\int p(y^*|b) p(b) db$. Theorem 3 of \cite{Horseshoe} shows that for the Horseshoe prior as $|y^*|\to \infty$ then $$\lim\limits_{|y^*|\to \infty} \frac{d}{dy^*} \log m(y^*)=0,$$
+%-------------
+implying that as $|y^*|\to \infty$ then $\mathbb{E}(b|y^*)\approx y^*$ and thus showing that the R2D2M2 prior is of bounded influence. The exact form of $m(y^*)$ for the R2D2 prior is given by
+
+\begin{align*}
+    m(y^*)= \frac{1}{(2\pi^3)^{1/2}} \int_0^\infty \exp \left( - \frac{y^{*2}/2}{1+\lambda^2}   \right) \frac{1}{(1+\lambda^2)^{3/2}} d\lambda.
+\end{align*}
+Making $z=\frac{1}{\lambda^2+1}$ results in
+
+\begin{align*}
+    m(y^*)&= \frac{1}{(2\pi^3)^{1/2}} \int_0^1 \exp \left(  -1/2 y^{*2} z   \right) z^{-1/2} dz \\
+    &= \frac{1}{\pi } \frac{ \text{erf} \left(y^* / \sqrt{2} \right)}{y^*},
+\end{align*}
+
+where $\text{erf}(\cdot)$ denotes the error function given by $\text{erf}(x)= \frac{2}{\sqrt{\pi}} \int_0^x e^{t^2} dt$. Hence, $\frac{d}{dy^*}\log m(y^*)$ is given by
+
+\begin{align*}
+    \frac{d}{dy^*}\log m(y^*)&= \frac{ \sqrt{\frac{2}{\pi}} e^{- y^{*2}/2 }} { \text{erf}\left(y^* / \sqrt{2} \right)} -\frac{1}{y^*},
+\end{align*}
+and $\lim_{|y^*|\to \infty} \frac{d}{dy^*}\log m(y^*)=0$. Using this and \eqref{eq:postmeannormalmeans} we have that as $|y^*|\to \infty $ then $\mathbb{E}(b|y^*) \to y^*$.

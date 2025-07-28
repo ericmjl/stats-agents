@@ -1,0 +1,205 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Bai and Ghosh}{Bai and Ghosh}{2021}]{Bai::2021aa}
+Bai, R. and M.~Ghosh (2021).
+\newblock On the beta prime prior for scale parameters in high-dimensional bayesian regression models.
+\newblock {\em Statistica Sinica\/}~{\em 31\/}(3), 1 -- 23.
+
+\bibitem[\protect\citeauthoryear{Bhadra, Datta, Polson, and Willard}{Bhadra et~al.}{2017}]{bhadra2017}
+Bhadra, A., J.~Datta, N.~G. Polson, and B.~Willard (2017).
+\newblock The horseshoe+ estimator of ultra-sparse signals.
+\newblock {\em Bayesian Analysis\/}~{\em 12\/}(4), 1105--1131.
+
+\bibitem[\protect\citeauthoryear{Bhattacharya, Pati, Pillai, and Dunson}{Bhattacharya et~al.}{2015}]{bhattacharya2015}
+Bhattacharya, A., D.~Pati, N.~S. Pillai, and D.~B. Dunson (2015).
+\newblock {Dirichlet--Laplace priors for optimal shrinkage}.
+\newblock {\em Journal of the American Statistical Association\/}~{\em 110\/}(512), 1479--1490.
+
+\bibitem[\protect\citeauthoryear{Carpenter, Gelman, Hoffman, Lee, Goodrich, Betancourt, Brubaker, Guo, Li, and Riddell}{Carpenter et~al.}{2017}]{carpenter2017}
+Carpenter, B., A.~Gelman, M.~D. Hoffman, D.~Lee, B.~Goodrich, M.~Betancourt, M.~Brubaker, J.~Guo, P.~Li, and A.~Riddell (2017).
+\newblock {Stan: A probabilistic programming language}.
+\newblock {\em Journal of Statistical Software\/}~{\em 76\/}(1), 1--32.
+
+\bibitem[\protect\citeauthoryear{Carvalho, Polson, and Scott}{Carvalho et~al.}{2009}]{carvalho2009handling}
+Carvalho, C.~M., N.~G. Polson, and J.~G. Scott (2009).
+\newblock Handling sparsity via the horseshoe.
+\newblock In {\em Artificial Intelligence and Statistics}, pp.\  73--80. PMLR.
+
+\bibitem[\protect\citeauthoryear{Carvalho, Polson, and Scott}{Carvalho et~al.}{2010}]{carvalho2010}
+Carvalho, C.~M., N.~G. Polson, and J.~G. Scott (2010, 04).
+\newblock {The horseshoe estimator for sparse signals}.
+\newblock {\em Biometrika\/}~{\em 97\/}(2), 465--480.
+
+\bibitem[\protect\citeauthoryear{Coles, Bawa, Trenner, and Dorazio}{Coles et~al.}{2001}]{coles2001introduction}
+Coles, S., J.~Bawa, L.~Trenner, and P.~Dorazio (2001).
+\newblock {\em An introduction to statistical modeling of extreme values}, Volume 208.
+\newblock Springer.
+
+\bibitem[\protect\citeauthoryear{Cox and Snell}{Cox and Snell}{1989}]{cox1989analysis}
+Cox, D.~R. and E.~J. Snell (1989).
+\newblock {\em Analysis of binary data}.
+\newblock Chapman \& Hall.
+
+\bibitem[\protect\citeauthoryear{Diggle, Tawn, and Moyeed}{Diggle et~al.}{1998}]{diggle1998model}
+Diggle, P.~J., J.~A. Tawn, and R.~A. Moyeed (1998).
+\newblock Model-based geostatistics.
+\newblock {\em Journal of the Royal Statistical Society: Series C (Applied Statistics)\/}~{\em 47\/}(3), 299--350.
+
+\bibitem[\protect\citeauthoryear{Fuglstad, Hem, Knight, Rue, and Riebler}{Fuglstad et~al.}{2020}]{fuglstad2020intuitive}
+Fuglstad, G.-A., I.~G. Hem, A.~Knight, H.~Rue, and A.~Riebler (2020).
+\newblock Intuitive joint priors for variance parameters.
+\newblock {\em {Bayesian Analysis}\/}.
+
+\bibitem[\protect\citeauthoryear{Gelman}{Gelman}{2006}]{Gelman2006::cauchy}
+Gelman, A. (2006).
+\newblock {Prior distributions for variance parameters in hierarchical models (comment on article by Browne and Draper)}.
+\newblock {\em Bayesian Analysis\/}~{\em 1\/}(3), 515 -- 534.
+
+\bibitem[\protect\citeauthoryear{Gelman, Goodrich, Gabry, and Vehtari}{Gelman et~al.}{2019}]{gelmanf2019r}
+Gelman, A., B.~Goodrich, J.~Gabry, and A.~Vehtari (2019).
+\newblock {R-squared for Bayesian regression models}.
+\newblock {\em The American Statistician\/}~{\em 73\/}(3), 307--309.
+
+\bibitem[\protect\citeauthoryear{Gelman and Hill}{Gelman and Hill}{2006}]{gelman2006data}
+Gelman, A. and J.~Hill (2006).
+\newblock {\em Data analysis using regression and multilevel/hierarchical models}.
+\newblock Cambridge University Press.
+
+\bibitem[\protect\citeauthoryear{George and McCulloch}{George and McCulloch}{1993}]{george1993}
+George, E.~I. and R.~E. McCulloch (1993).
+\newblock {Variable selection via Gibbs sampling}.
+\newblock {\em Journal of the American Statistical Association\/}~{\em 88\/}(423), 881--889.
+
+\bibitem[\protect\citeauthoryear{Hamura, Irie, and Sugasawa}{Hamura et~al.}{2022}]{hamura2022global}
+Hamura, Y., K.~Irie, and S.~Sugasawa (2022).
+\newblock On global-local shrinkage priors for count data.
+\newblock {\em Bayesian Analysis\/}~{\em 17\/}(2), 545--564.
+
+\bibitem[\protect\citeauthoryear{Hans}{Hans}{2009}]{hans2009}
+Hans, C. (2009).
+\newblock Bayesian lasso regression.
+\newblock {\em Biometrika\/}~{\em 96\/}(4), 835--845.
+
+\bibitem[\protect\citeauthoryear{Hastie}{Hastie}{2017}]{hastie2017generalized}
+Hastie, T.~J. (2017).
+\newblock {\em Generalized Additive Models}.
+\newblock Routledge.
+
+\bibitem[\protect\citeauthoryear{Hodges and Sargent}{Hodges and Sargent}{2001}]{hodges2001counting}
+Hodges, J.~S. and D.~J. Sargent (2001).
+\newblock Counting degrees of freedom in hierarchical and other richly-parameterised models.
+\newblock {\em Biometrika\/}~{\em 88\/}(2), 367--379.
+
+\bibitem[\protect\citeauthoryear{Klein, Carlan, Kneib, Lang, and Wagner}{Klein et~al.}{2021}]{klein2021bayesian}
+Klein, N., M.~Carlan, T.~Kneib, S.~Lang, and H.~Wagner (2021).
+\newblock Bayesian effect selection in structured additive distributional regression models.
+\newblock {\em Bayesian Analysis\/}~{\em 16\/}(2), 545--573.
+
+\bibitem[\protect\citeauthoryear{Lewis and Knight}{Lewis and Knight}{2012}]{lewis2012introduction}
+Lewis, C.~M. and J.~Knight (2012).
+\newblock Introduction to genetic association studies.
+\newblock {\em Cold Spring Harbor Protocols\/}~{\em 2012\/}(3), pdb--top068163.
+
+\bibitem[\protect\citeauthoryear{Lindgren and Rue}{Lindgren and Rue}{2015}]{lindgren2015bayesian}
+Lindgren, F. and H.~Rue (2015).
+\newblock {Bayesian spatial modelling with R-INLA}.
+\newblock {\em Journal of statistical software\/}~{\em 63\/}(19).
+
+\bibitem[\protect\citeauthoryear{Lindley}{Lindley}{1957}]{lindley1957}
+Lindley, D.~V. (1957).
+\newblock A statistical paradox.
+\newblock {\em Biometrika\/}~{\em 44\/}(1/2), 187--192.
+
+\bibitem[\protect\citeauthoryear{McFadden}{McFadden}{1973}]{mcfadden1973conditional}
+McFadden, D. (1973).
+\newblock Conditional logit analysis of qualitative choice behavior.
+
+\bibitem[\protect\citeauthoryear{Morokoff and Caflisch}{Morokoff and Caflisch}{1995}]{Morokoff1995}
+Morokoff, W.~J. and R.~E. Caflisch (1995).
+\newblock {Quasi-Monte Carlo integration}.
+\newblock {\em Journal of Computational Physics\/}~{\em 122\/}(2), 218--230.
+
+\bibitem[\protect\citeauthoryear{Park and Casella}{Park and Casella}{2008}]{park2008}
+Park, T. and G.~Casella (2008).
+\newblock {The Bayesian lasso}.
+\newblock {\em Journal of the American Statistical Association\/}~{\em 103\/}(482), 681--686.
+
+\bibitem[\protect\citeauthoryear{Perez, Pericchi, and Ramirez}{Perez et~al.}{2017}]{Perez::2007aa}
+Perez, M.-E., L.~Pericchi, and I.~Ramirez (2017, 09).
+\newblock {The scaled Beta2 distribution as a robust prior for scales}.
+\newblock {\em Bayesian Analysis\/}~{\em 12}, 615 -- 637.
+
+\bibitem[\protect\citeauthoryear{P{\'e}rez-Enciso and Tenenhaus}{P{\'e}rez-Enciso and Tenenhaus}{2003}]{perez2003prediction}
+P{\'e}rez-Enciso, M. and M.~Tenenhaus (2003).
+\newblock Prediction of clinical outcome with microarray data: a partial least squares discriminant analysis (pls-da) approach.
+\newblock {\em Human genetics\/}~{\em 112}, 581--592.
+
+\bibitem[\protect\citeauthoryear{Perou, S{\o}rlie, Eisen, Van De~Rijn, Jeffrey, Rees, Pollack, Ross, Johnsen, Akslen, et~al.}{Perou et~al.}{2000}]{perou2000molecular}
+Perou, C.~M., T.~S{\o}rlie, M.~B. Eisen, M.~Van De~Rijn, S.~S. Jeffrey, C.~A. Rees, J.~R. Pollack, D.~T. Ross, H.~Johnsen, L.~A. Akslen, et~al. (2000).
+\newblock Molecular portraits of human breast tumours.
+\newblock {\em nature\/}~{\em 406\/}(6797), 747--752.
+
+\bibitem[\protect\citeauthoryear{Plummer, Stukalov, Denwood, and Plummer}{Plummer et~al.}{2016}]{plummer2016}
+Plummer, M., A.~Stukalov, M.~Denwood, and M.~M. Plummer (2016).
+\newblock Package ‘rjags’.
+\newblock {\em Vienna, Austria\/}.
+
+\bibitem[\protect\citeauthoryear{Polson and Scott}{Polson and Scott}{2012}]{polson2012bb}
+Polson, N.~G. and J.~G. Scott (2012).
+\newblock {On the Half-Cauchy Prior for a Global Scale Parameter}.
+\newblock {\em Bayesian Analysis\/}~{\em 7\/}(4), 887 -- 902.
+
+\bibitem[\protect\citeauthoryear{Polson, Scott, Clarke, and Severinski}{Polson et~al.}{2012}]{Polson2012shrinkage}
+Polson, N.~G., J.~G. Scott, B.~S. Clarke, and C.~Severinski (2012).
+\newblock Shrink globally, act locally: Sparse bayesian regularization and prediction.
+
+\bibitem[\protect\citeauthoryear{R{\'e}nyi}{R{\'e}nyi}{1961}]{renyi1961}
+R{\'e}nyi, A. (1961).
+\newblock On measures of entropy and information.
+\newblock In {\em Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics and Probability, Volume 1: Contributions to the Theory of Statistics}, pp.\  547--561. University of California Press.
+
+\bibitem[\protect\citeauthoryear{Ribeiro~Jr, Diggle, Ribeiro~Jr, and Suggests}{Ribeiro~Jr et~al.}{2007}]{ribeiro2007geor}
+Ribeiro~Jr, P.~J., P.~J. Diggle, M.~P.~J. Ribeiro~Jr, and M.~Suggests (2007).
+\newblock {The geoR package}.
+\newblock {\em R news\/}~{\em 1\/}(2), 14--18.
+
+\bibitem[\protect\citeauthoryear{Ro{\v{c}}kov{\'a} and George}{Ro{\v{c}}kov{\'a} and George}{2018}]{rovckova2018}
+Ro{\v{c}}kov{\'a}, V. and E.~I. George (2018).
+\newblock The spike-and-slab lasso.
+\newblock {\em Journal of the American Statistical Association\/}~{\em 113\/}(521), 431--444.
+
+\bibitem[\protect\citeauthoryear{Rohart, Gautier, Singh, and L{\^e}~Cao}{Rohart et~al.}{2017}]{rohart2017mixomics}
+Rohart, F., B.~Gautier, A.~Singh, and K.-A. L{\^e}~Cao (2017).
+\newblock mixomics: An r package for ‘omics feature selection and multiple data integration.
+\newblock {\em PLoS computational biology\/}~{\em 13\/}(11), e1005752.
+
+\bibitem[\protect\citeauthoryear{Searle, Casella, and McCulloch}{Searle et~al.}{2009}]{searle2009variance}
+Searle, S.~R., G.~Casella, and C.~E. McCulloch (2009).
+\newblock {\em Variance Components}.
+\newblock John Wiley \& Sons.
+
+\bibitem[\protect\citeauthoryear{Simpson, Rue, Riebler, Martins, S{\o}rbye, et~al.}{Simpson et~al.}{2017}]{simpson2017penalising}
+Simpson, D., H.~Rue, A.~Riebler, T.~G. Martins, S.~H. S{\o}rbye, et~al. (2017).
+\newblock Penalising model component complexity: A principled, practical approach to constructing priors.
+\newblock {\em Statistical science\/}~{\em 32\/}(1), 1--28.
+
+\bibitem[\protect\citeauthoryear{Spiegelhalter, Thomas, Best, and Lunn}{Spiegelhalter et~al.}{2003}]{winbugs}
+Spiegelhalter, D., A.~Thomas, N.~Best, and D.~Lunn (2003).
+\newblock Winbugs user manual.
+
+\bibitem[\protect\citeauthoryear{Thomson, Connor, D'Alessandro, Rowlingson, Diggle, Cresswell, and Greenwood}{Thomson et~al.}{1999}]{thomson1999predicting}
+Thomson, M.~C., S.~J. Connor, U.~D'Alessandro, B.~Rowlingson, P.~Diggle, M.~Cresswell, and B.~Greenwood (1999).
+\newblock Predicting malaria infection in gambian children from satellite data and bed net use surveys: the importance of spatial correlation in the interpretation of results.
+\newblock {\em The American Journal of Tropical Medicine and Hygiene\/}~{\em 61\/}(1), 2--8.
+
+\bibitem[\protect\citeauthoryear{Zhang and Bondell}{Zhang and Bondell}{2018}]{zhang2018}
+Zhang, Y. and H.~D. Bondell (2018).
+\newblock {Variable Selection via Penalized Credible Regions with Dirichlet–Laplace Global-Local Shrinkage Priors}.
+\newblock {\em Bayesian Analysis\/}~{\em 13\/}(3), 823 -- 844.
+
+\bibitem[\protect\citeauthoryear{Zhang, Naughton, Bondell, and Reich}{Zhang et~al.}{2022}]{zhang2022bayesian}
+Zhang, Y.~D., B.~P. Naughton, H.~D. Bondell, and B.~J. Reich (2022).
+\newblock Bayesian regression using a prior on the model fit: The r2-d2 shrinkage prior.
+\newblock {\em Journal of the American Statistical Association\/}~{\em 117\/}(538), 862--874.
+
+\end{thebibliography}

@@ -1,0 +1,161 @@
+\section{The R2D2M2 prior}
+
+\label{sec:r2d2m2prior}
+
+In the following, we denote the response variable as $y$, its $n$th observed value as $y_n$ where $n \in \{1,...,N\}$, and the predictor variables (features or covariates) as $x_i$ with $i \in \{1,...p\}$. Additionally we assume conditional independence of the $N$ observations in the data. We define the overall coefficients as those that affect every member of the general population and the group or varying coefficients as those that do so per group.  In the statistical literature, the terms overall and varying coefficients have been known as fixed and random effects, respectively, nevertheless we believe that this nomenclature is problematic in the Bayesian setting, since all of the parameters of interest are treated as (random) variables whose uncertainty is represented via probability distributions \citep{gelman_hill_2006}. We denote the overall coefficients by $b_i,  i \in \{0,...,p\}$ and the group specific or varying coefficients by $u_{i g_j}$. Here $g$ denotes a categorical grouping variable, encoding the individual groups $g_j$ across which the coefficient of the $i$th predictor $x_i$ is expected to vary. If we denote $G_i$ as the index set of all grouping variables across which the coefficient of $x_i$ is expected to vary, we can write the observation model of a linear multilevel model as
+%--------------------
+\begin{align}
+\label{eq:lklhd}
+    y_n &\sim \normal \left( \mu_n, \sigma^2 \right) \\
+    \mu_n &= b_{0}+ \sum_{i=1}^p x_{ni} b_{i}+  \sum_{g\in G_0} u_{0 g_{j[n]}  }  + \sum_{i=1}^p x_{ni} \left( \sum_{g \in G_i} u_{i g_{j[n]}} \right),
+\end{align}
+%--------------------
+for $n \in \{1,...,N\}, i \in \{0,...,p\},g\in \{1,..., G_i\} $ and $j\in J_g$, where $J_g$ is the index set over the levels of grouping variable $g$. Here, $b_0$ and $u_{0 g_j}$ denote the overall intercept and varying intercepts, respectively, whereas the former will not be subject to extra prior regularization (see below). \\
+
+When doing Bayesian inference in multilevel models, it is a common practice to set independent normal priors on all regression coefficients:
+\begin{align}
+\label{eq:priorsoncoefs}
+	b_i \sim  \normal \left( 0,  \tilde{\lambda}_i^2   \right) , \ \
+	u_{ig_j} \sim  \normal \left( 0,  \tilde{\lambda}_{ig}^2  \right),
+\end{align}
+where, in current practice, $\tilde{\lambda}^2_i, \tilde{\lambda}^2_{ig} $ are either fixed or are assigned independent priors. The literature shows that either fixing the values of $\tilde{\lambda}$ or assigning independent priors for $\tilde{\lambda}$ is suboptimal, as the total prior variance of the model scales with the number of included terms, which is implausible in reality \citep{Fulgstad2019}. Beyond that, it remains unclear how these priors scale with the number of predictors when their coefficients vary across an increasing number of grouping factors.
+
+\subsection{Implied priors on R2}
+
+The $\rsq$ measure expresses the proportion of variance explained by the model in relation to the total variance $\sigma_y^2$ of the response $y$ \citep{gelmanregstories2020}. For Gaussian models with residual standard deviation $\sigma$ we define
+%---------------------
+\begin{align}
+\label{r2def}
+	\rsq &\coloneqq \text{corr}^2(y, \mu)=  1-\frac{\sigma^2}{\sigma_y^2},
+\end{align}
+%---------------------
+as a \textit{global} measure of proportion of variance explained \citep{r2mlmssterba}. Global means that it jointly comprises all overall and group specific coefficients at the same time. This stands in contrast to some common definitions of $R^2$ in multilevel models, where $R^2$ is defined for each level of the model separately, rather than jointly across all levels and terms \citep{r2mlmNakagawa, r2mlmssterba}. Our work emphasizes the use of a global $R^2$ as our aim is a joint regularization of all regression coefficients. In that sense, we use the above $R^2$ metric simply as a starting point for a joint regularizing prior for multilevel models, independently of which metric one would prefer to measure explained variances after estimating the model.
+
+ Given that $\rsq$ is invariant under changes to the mean of the response $y$ or any of the predictors $x_i$, we can assume $\mathbb{E}(y)=\mathbb{E}(x_i)=0, \forall i \in \{ 1,..., p\}$ without loss of generality in the following. This implies that the model's overall intercept $b_{00}$ is zero and we can rewrite $\rsq$ as
+ %---------------------
+\begin{align}
+\label{eq:r2fvarmu} %r2 as a function of var mu
+	\rsq&= \frac{\var(\mu) }{\var(\mu)+\sigma^2}.
+\end{align}
+%---------------------
+
+ Assume a-priori independence of the regression coefficients and consider a prior for $b_i$ and $u_{ig_j}$ that satisfies  $\mathbb{E}(b_i)=0, \mathbb{E}(u_{ig_{j}})=0$. Additionally, denote by $\sigma^2_{x_i}$ the variance of the $i$th covariate, then we can write
+%---------------------
+\begin{align}
+\label{eq:vardecomposition}
+	\var(\mu)&= \sum_{g\in G_0} \tilde{\lambda}_{0g}^2   + \sum_{i=1}^p \sigma_{x_i}^2 \left(   \tilde{\lambda}^2_i+  \sum_{g\in G_i} \tilde{\lambda}_{ig}^2  \right) .
+\end{align}
+%---------------------
+
+Equation (\ref{eq:vardecomposition}) shows that $\var(\mu)$ can be decomposed into the variance components belonging to the overall and varying effects, respectively. Furthermore, the variance corresponding to the varying coefficients can be sub-decomposed into the variance associated to the varying intercepts and varying slopes.
+%---------------------
+ \begin{figure}[t!]%
+    \centering
+    \includegraphics[keepaspectratio , width=\textwidth]{r2implied}
+    \caption{Implied prior on $R^2$ varying number of predictors in a single level linear model with $\normal(0,1)$ priors on the coefficients and an $\expdist(1)$ prior on the error $\sigma$. Notice how weakly informative priors implicate a highly informative prior on $R^2$.}
+    \label{fig:r2}
+\end{figure}
+%---------------------
+
+The decomposition of $\var(\mu)$ shown in Equation (\ref{eq:vardecomposition}) allows us to investigate the effect the standard deviations $\tilde{\lambda}$ (or variances $\tilde{\lambda}^2$ ) have on the implied prior for $R^2$. As an example, consider a simple linear model without grouping variables $y_n \sim \normal(\mu_n, \sigma^2)$ where $\mu_n= \sum_{i=1}^p x_{ni} b_i$, with independent $\normal(0,\tilde{\lambda}_i^2)$ priors on $b_i$ with $\tilde{\lambda}_i=1$, and an $\expdist(1)$ prior on $\sigma$. These type of priors are usually considered weakly informative when the variables are standardized, however Figure \ref{fig:r2} shows that the implied prior on $R^2$ is actually very informative. The implied prior on $R^2$ becomes increasingly narrow with a peak close to $R^2=1$ as the number of predictors increases. This behavior becomes even stronger for larger values of $\lambda_i$ and when adding more terms. Therefore, it is also present in the context of multilevel models, where including additional levels per grouping factor and/or additional grouping factors increases the amount of parameters substantially. For instance, when considering one grouping factor $g$ with $L$ different levels and all $p$ coefficients varying across the $L$ levels, one would have $(p+1)L$ additional coefficients (the $1$ is for the varying intercept).
+
+An $R^2 \approx 1$ represents almost perfect in-sample predictions. This is usually an indicator of overfitting when relevant amounts of noise are present in the data, such that $R^2 \approx 1$ can only be achieved by partially fitting on noise. Any prior implying such a large $R^2$ is highly unrealistic and would not be able to regularize sufficiently. Accordingly, it is more sensible to specify a prior on the overall variance explained by the model and then decompose this variance into components assigned to the individual terms, thereby inducing a joint prior over the variances of all terms. For this purpose, we propose (as have others \citep{rstanarm,r2d2zhang}) to specify a prior directly on $R^2$ as it provides an intuitive and widely understood measure of model fit.
+
+As mentioned before, our main intention is to generalize the R2D2 prior proposed by \cite{r2d2zhang} to models with increased complexity in terms of multilevel structures. On account of the inclusion of \emph{M}ultilevel \emph{M}odels (M2) in the R2D2 prior, we name our new prior the \emph{R2D2M2 prior}. \\
+
+
+\subsection{Derivation of the R2D2M2 prior}
+
+In the following we present the derivation of our new prior. For this purpose, we begin by decomposing the priors' variances $\tilde{\lambda}^2_i$ and $\tilde{\lambda}_{ig}^2$ as
+ %---------------------
+ \begin{align}
+ \label{tlambdas}
+ \tilde{\lambda}_i^2= \frac{\sigma^2}{  \sigma_{x_i}^2 } \lambda_i^2 , \ \
+  \tilde{\lambda}_{ig}^2  =  \frac{\sigma^2}{  \sigma_{x_i}^2 } \lambda_{ig}^2.
+ \end{align}
+%---------------------
+The factor $\frac{\sigma^2}{ \sigma_{x_i}^2}$ accounts for the scales of $y$ and $x_i$ and ensures that $\lambda_i$ represents prior variances on standardized variables, which are comparable across terms and $\lambda_i$ are appropriate for any scale of $y$ and $x$. In practice, $\sigma_{x_i}$ is unknown and it could be  replaced by the sample variance $ \hat{\sigma}_{x_i}^2 $ obtained from the data. Plugging (\ref{tlambdas}) into (\ref{eq:vardecomposition}) results in
+%--
+\[  \var(\mu)= \sigma^2  \left( \sum_{g\in G_0} \lambda_{0g}^2   + \sum_{i=1}^p  \left(   \lambda^2_i+  \sum_{g\in G_i} \lambda_{ig}^2  \right) \right) = \sigma^2 \tau^2,    \]
+%--
+where we have taken $\tau^2$ as the sum of standardized prior variances given  by
+%---------------------
+\begin{align}
+\label{totvariance}
+\tau^2 &= \sum_{g\in G_0} \lambda_{0g}^2   + \sum_{i=1}^p  \left(   \lambda^2_i+  \sum_{g\in G_i} \lambda_{ig}^2  \right) .
+\end{align}
+%---------------------
+$\tau^2$ is the (standardized) explained variance in correspondence to the interpretation of $R^2$ as proportion of explained variance. Using $\var(\mu)=\sigma^2 \tau^2$, $R^2$ can be written as
+%---------------------
+\begin{align}
+\label{eq:r2ft2}
+	R^2&= \frac{\var(\mu)}{\var(\mu)+\sigma^2 }=   \frac{  \sigma^2 \tau^2  }{  \sigma^2 \tau^2 + \sigma^2} = \frac{ \tau^2 }{\tau^2+1}.
+\end{align}
+%---------------------
+
+Following \cite{r2d2zhang}, we set a Beta distribution on $R^2$ and we write $R^2\sim \betadist (\cdot, \cdot )$. The Beta distribution offers a wide number of different parametrizations \citep{meanprecbeta}. Here we choose to parametrize the Beta distribution on $R^2$ in terms of the prior mean $\mu_{R^2}$ and prior "precision" $\varphi_{R^2}$ (also known as mean-sample size parameterization), since it provides users with an intuitive way to incorporate prior knowledge into the $R^2$ prior; Both hyperparameters are understandable and expressible in terms of domain knowledge that represent the existing relationship between the included covariates and the response variable.
+
+Equation (\ref{eq:r2ft2}) implies that, by definition, $\tau^2$ has a Beta-Prime distribution with parameters $\mu_{R^2}, \varphi_{R^2}$, represented by $\tau^2 \sim \betaprime(\mu_{R^2}, \varphi_{R^2})$. Figure \ref{fig:betapriors} illustrates the flexibility that the Beta distribution can offer in expressing prior knowledge about $R^2$. The corresponding Beta-Prime prior for $\tau^2$ is also shown. For example, for values of $(\mu_{R^2},\varphi_{R^2})=(0.5,1)$, we get a bathtub-shaped prior on $R^2$ that places most mass near the two extremes $R^2=0$ and $R^2=1$. A priori, this indicates that the user expects the model to contain a substantial amount of either noise or signal.
+
+%---------------------
+ \begin{figure}[t!]%
+    \centering
+    \includegraphics[keepaspectratio, width=\textwidth ]{images/betapriorplots.pdf}
+    \caption{Exemplary densities of the Beta prior for $R^2$ (left) and corresponding Beta-Prime prior for $\tau^2$ (right) with varying mean and precision parameters $\mu, \varphi$ respectively.}
+    \label{fig:betapriors}
+\end{figure}
+%---------------------
+In a consecutive decomposition step, we follow a Global-Local (GL) prior framework and set
+%---------------------
+\begin{align}
+	\label{lambdaphi}
+	\lambda_i^2=\phi_i\tau^2,\ \ \lambda_{ig}^2=  \phi_{ig}\tau^2  , \ \
+\end{align}
+%---------------------
+with a vector $\phi$ containing all elements $ \phi_i, \phi_{ig} \geq 0, \forall i \in \{1,...,p\},g \in G_i$ such that $\sum_{i}\phi_i+\sum_{i}\sum_{g \in G_i}  \phi_{ig}  =1$, thus rendering $\phi$ as a simplex. $\phi_i$ and $\phi_{ig}$ represent the proportion of standardized explained variance attributed to the $i$th and $ig$th term respectively. Decomposition (\ref{lambdaphi}) describes the proportion of standardized explained variance attributable to the $ig$th term, therefore controlling the variability allocated to each individual variance $\lambda_{ig}^2$.
+
+A natural prior for $\phi$ is a Dirichlet distribution with hyperparameter $\alpha$ chosen by the user, where $\alpha$ is a vector of length equal to the number of variance components that are included in the model and it governs the shape of the Dirichlet distribution. For instance, if the model has $p$ overall coefficients, one grouping factor $g$ and $q$ varying coefficients in the grouping factor, then $\alpha$ is of length $p+q+1$, due to the inclusion of the varying intercept. The amount of levels $L$ does not affect the length of $\alpha$ according to our prior specification (e.g., see Figure \ref{fig:r2d2prop2} below).We denote the elements of $\alpha$ as $\alpha_i$ and $\alpha_{ig}$, which represent the a priori expected relevance on each overall and varying regression term, respectively. In our context we will call $\alpha$ a concentration vector, since $\alpha_0= \sum_{i}\alpha_i+\sum_{ig}\alpha_{ig}$ determines the narrowness of the distribution, that is, how peaked it is \citep{OnTheDirichlet}.
+
+Naturally, the question arises of how $\alpha$ is to be specified. When $\alpha=(1,...,1)'$ the prior is flat over all possible simplexes, which renders this value a good choice in the absence of additional prior knowledge. More generally, setting $\alpha=(a_\pi,...,a_\pi)'$ with a concentration parameter $a_\pi > 0$ (a symmetric Dirichlet distribution) can also be sensible since it drastically reduces the number of hyperparameters to specify, providing us with the ability to globally control the shape of the Dirichlet distribution with a single value. Additionally, the user can control the induced sparsity of the model by use of this single value as we show in Section \ref{subsection:tailcon}. A symmetric Dirichlet distribution is useful when there is no prior preference that favours one component over another. Values for which $a_\pi<1$ produce simplexes that concentrate their mass on the edges ("bathtub" distribution) and most coefficient values within a single sample will be close to 0. Instead, setting $a_\pi>1$ results in concentration around the center of the simplex, favouring an even distribution among the different components \citep{OnTheDirichlet}. Finally, the user can also specify asymmetric Dirichlet distributions by designating different values for the components of $\alpha$, which represent the differently a priori expected importance of the corresponding regression term.
+
+The values of $\tau^2$ and $\phi_{ig}$ play different roles in the prior. The explained variance $\tau^2$ controls the amount of global shrinkage and is therefore deemed as a global scale, whereas the $ig$th attributed variance $\phi_{ig}$ serves as a local scale that controls the individual shrinkage the prior induces over each specific term. The components of $\phi$ compete to increase and to acquire a higher proportion from the total variance $\tau$. This can be seen when examining the covariance between two different components, which is given by $\text{cov}(\phi_i, \phi_j)= \frac{-\alpha_i \alpha_j}{ \alpha_0^2 (\alpha_0+1)}, i\neq j$. Thus, for a fixed value of $\tau^2$, as the importance of one term increases the importance of other terms decrease, and vice versa.
+
+In the GL framework, the next step is to assign a base distribution that is able to express the attributed variance to each regression term $b_i$ and $u_{ig_j}$. In their original R2D2 paper, \cite{r2d2zhang} consider the coefficients to follow double exponential base distributions since they ensure both a higher concentration of mass around a zero and heavier tails than normal distributions. In the present paper, we will instead employ normal base distributions for each regression term for several, not mutually independent reasons:
+\begin{enumerate}
+    \item It is customary in the multilevel model literature to
+    consider normal base distributions for the overall and varying coefficients \cite{ gelman_hill_2006, wakefield2013bayesian}. What is more, Global-Local priors with normal base distributions are very flexible and have been the gold standard when proposing shrinkage priors, as can be seen in  \citep{Horseshoe,DirichletLaplace, BayesPenalizedRegSara}, among others.
+    \item  Posterior approximation via gradient-based MCMC methods encounter issues when sampling from non-differentiable distributions, such as the double exponential \citep{handbookmcmc}. Additionally, it is straighforward to reparametrize the posterior distribution to improve the rates of convergence of either Gibbs or Hamiltonian Monte Carlo based MCMC samplers in the context of conditionally normal multilevel models \citep{brmsJSS, GibbsMultigrid}.
+    \item  The use of normal distributions provides us with closed analytical expressions for several quantities of interest as described in Section \ref{sec:Properties} and shows, for example, good shrinkage and tail behavior.
+\end{enumerate}
+
+ To ease prior specification and speed up sampling, we will set a prior on the intercept $\tilde{b}_{00}$ implied when all $\mathbb{E}(x_i)=0$ and then recover the original intercept $b_{00}$ after model fitting using a simple linear transformation \citep{rstanarm, brmsJSS}. Common priors on $b_{00}$ are a normal prior with mean $\mathbb{E}(y)$ and a user chosen scale depending on the scale of $y$ as well as Jeffrey's prior which is improper flat in this case \citep{Jeffreys}.
+
+What remains to be specified is a prior for the residual variance $\sigma^2$ (or equivalently residual standard deviation $\sigma$). We follow the recommendations of \cite{GelmanHalfStudentt} to consider a half Student-$t$ prior on $\sigma$ with $\nu$ degrees of freedom and scale $\eta$. We propose setting $\eta \approx \text{sd}(y)$, since both the prior expected mean and variance are proportional to $\eta$. To be able to implement a Gibbs sampling approach, an inverse Gamma distribution $\sigma^2 \sim \text{InvGamma} (c,d) $, with shape and scale parameters $c,d$ respectively, could also be considered. We show how to implement a Gibbs sampler for the R2D2M2 prior in Appendix \ref{section:appendixB}.
+
+The full R2D2M2 model can summarized as
+%----
+\begin{equation}
+\label{r2d2m2model}
+    \begin{aligned}
+y_n & \sim \normal (\mu_n, \sigma^2) \\
+\mu_n &= b_{0}+ \sum_{i=1}^p x_{ni} b_{i}+  \sum_{g\in G_0} u_{0 g_{j[n]}  }  + \sum_{i=1}^p x_{ni} \left( \sum_{g \in G_i} u_{i g_{j[n]}} \right) \\
+b_{0}& \sim  p(b_{0}) \\
+b_i &\sim \normal \left(0, \frac{\sigma^2}{\sigma_{x_i}^2}   \phi_i \tau^2\right), \quad
+    u_{ig_j} \sim \normal \left(0, \frac{\sigma^2}{\sigma_{x_i}^2}   \phi_{ig} \tau^2\right) \\
+    \tau^2&= \frac{R^2}{1-R^2}\\
+R^2  &\sim \betadist (\mu_{R^2},\varphi_{R^2}), \ \
+     \phi \sim \dirichlet (\alpha), \ \
+     \sigma \sim p(\sigma). \\
+\end{aligned}
+\end{equation}
+%----
+\begin{figure}[t!]%
+    \centering
+    \input{tikz/modelr2d2-2}
+  \caption{Construction of the R2D2M2 prior schematically. We begin by assigning a distribution to $R^2$, afterwards its uncertainty is propagated to the regression terms via a Dirichlet decomposition of the (a priori) explained variance. Finally, we make use of a distribution that can express the amount of variance that has been allocated to each term. Notice how all $u_{ig_jl}$ share the same local variance $\lambda_{i_g}$ for a given pair $(i, g_j)$ and varying level $l$. \\}
+  \label{fig:r2d2prop2}
+\end{figure}%
+%----
+A schematic construction of the R2D2M2 is shown in Figure \ref{fig:r2d2prop2}. We do not specify distributions in this diagram, thus emphasizing that there is flexibility in the way uncertainty can be propagated from $R^2$ to the coefficients (as long as consistent rules that respect the corresponding domains of each parameter are followed). For example, the user might want to use a different distribution for $R^2$, such as the Kumaraswamy distribution which offers advantages when using quantile-based approach to statistical modelling \citep{Kumaraswamy}, or they might desire to model correlations among the components of $\phi$ explicitly, in which case they could use a distribution that allows it, such as a logistic normal distribution \citep{logisticnormal}.
+
+We close this section commenting on how the intuitiveness of the R2D2M2 prior assists in eliciting prior knowledge or lack of it. Users can readily communicate a prior expected value for $R^2$ through $\mu_{R^2}$. Given a value for $\mu_{R^2}$, the value selected for $\varphi_{R^2}$ is an indicator of how confident the user is on how much of the response variability the model is explaining. This falls in line with the recommendations given by \cite{prioreli} on how to improve prior elicitation: the hyperparameters on the prior for $R^2$ are easy to understand and the priors for the regression terms regularized jointly (see Figure \ref{fig:r2d2prop2}), hence significantly decreasing the number of hyperparameters to the user has to choose. Thus, the R2D2M2 prior brings us a step forward in terms of prior elicitation for multilevel models and provides a valuable tool in the Bayesian workflow for data analysis more generally \citep{bayesianworkflow}.

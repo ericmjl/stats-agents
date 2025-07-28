@@ -1,0 +1,291 @@
+\section{Numerical experiments and case studies}
+\label{sec:examples}
+
+We have implemented the R2D2M2 prior model in the probabilistic programming language Stan \citep{StanJSS, stan2022}. The corresponding code can be found in Appendix B as well as on {\myosfresults}. Based on this implementation, we performed two large-scale simulations studies and analysed a high-dimensional real-world data set using the R2D2M2 prior as detailed below.
+
+\subsection{Simulation Based Calibration}
+\label{subsection:SBC}
+
+First, we demonstrate that inference for our implementation of the R2D2M2 prior is probabilistically well calibrated. For this purpose, we applied simulation based calibration (SBC) \citep{taltssbc}. SBC is a general procedure for validating inferences from Bayesian algorithms capable of generating samples from posterior distributions. The procedure gives us the ability to identify inaccurate computations as well as inconsistencies in model implementations. In works by first sampling true parameter values $\tilde{\theta}$ from the prior, $\tilde{\theta} \sim p(\theta)$ and subsequently sampling data $\tilde{y}$ from the likelihood $\tilde{y} \sim p(y|\tilde{\theta})$. Afterwards, using the algorithm that needs to validated, we obtain $S$ samples $\{\theta_1,...,\theta_S  \} \sim p(\theta | \tilde{y})$ from the (approximated) posterior. Finally, for a quantity of interest $f(\theta)$, we calculate a rank statistic of how many values in $\{ f(\theta_1),..., f(\theta_n) \}$ fall below the true value $f(\tilde{\theta})$. If the algorithm is well calibrated, this rank statistic of the prior sample $f(\tilde{\theta})$ in relation to the posterior draws is uniformly distributed \citep{taltssbc}. We will use the terms posterior draws and samples interchangeably.
+
+To test uniformity of the rank statistics, we applied a intuitive graphical test proposed by \cite{teemubuerknergraphical}, which provides simultaneous confidence bands of the empirical cumulative distribution function (ECDF) that satisfy a pre-specified joint coverage assuming uniformity. For ease of illustration, the plots show differences between the perfectly uniform CDF (a diagonal line) and the ECDF. In other words, it rotates a regular ECDF plot by 45 degrees to the right to make the uniform CDF a flat line and make the relevant part of the plot stand out more clearly. The graphical test is straightforward to use and is implemented in the R package \texttt{SBC} \citep{sbcmanual}.
+
+To sample from the posterior distribution we use Stan \citep{StanJSS, stan2022}, a probabilistic programming language that provides the user with a (now substantially extended) implementation of the No-U-Turn Sampler (NUTS) from \cite{nuts}, an adaptive form of Hamiltonian Monte Carlo (HMC) sampling \citep{handbookmcmc}. To avoid sampling issues often encountered in hierarchical models  we use non-centered parametrizations of the model (see {\myosfresults} and \cite{ProbProgrammingGorinova} for details).
+
+Calibration is a function of both the probabilistic model under consideration and the posterior approximation algorithm. Here we have tested calibration of our Stan implementations of both the R2D2 and the R2D2M2 prior models, since both of them are highly practically relevant. Note that calibration tests for previous implementations of the R2D2 prior model have not been reported beforehand by other authors.
+
+There are two quantities that play a key role in how computationally intensive SBC can turn out to be: the number of simulation trials per configuration (i.e., the number of fitted models per configuration) and how many posterior draws to extract per simulation (i.e., per fitted model). We have fixed these to $T = 100$ and $S = 3000$, respectively. For MCMC samplers such as random walk Metropolis-Hastings or Gibbs sampling, this amount of posterior draws  might seem as a bit small, however for adaptive Hamiltonian Monte Carlo estimates, a few thousand samples is sufficient for most models \citep{brmsJSS, nuts,stan2022}; and, as we show below, is indeed sufficient for the here-considered models.
+
+We have tested calibration for a total of 96 different simulation configurations as detailed below. This amount comes from fully crossing all the factors that are varied in the simulations. An overview of the different configurations can be found in Appendix \ref{section:appendixC} in Table \ref{tab:sbchyperparams}. The different conditions are chosen to represent several realistic scenarios that analysts might encounter in a similar fashion in real-life data analysis.
+
+To sample prior values $\tilde{\theta}$ from the R2D2 or the R2D2M2 prior we need to specify several quantities: the prior mean $\mu_{R^2}$ and prior precision $\varphi_{R^2}$ of the prior on $R^2$ as well as the concentration parameter $a_\pi$ of the Dirichlet prior on $\phi$. We chose $\mu_{R^2} \in \{0.1, 0.5 \}, \varphi_{R^2} \in \{0.5,1 \}$, and $a_\pi \in \{0.5, 1 \}$. The number of grouping factors $K$ was chosen as $K \in \{0, 1\}$, implying either an R2D2 or an R2D2M2 prior. The number of covariates $p$ was varied in $p \in \{10,100,300\}$. When considering the R2D2M2 prior, we used $q=p+1$ varying terms per grouping factor $K$, that is, varying coefficients for each covariate plus a varying intercept. The number of levels per grouping factor was held constant with a value of $L=20$. Finally, the residual standard deviation $\sigma$ was sampled from a half Student-$t$ with 3 degrees of freedom and scale of 1 \citep{GelmanHalfStudentt} and the overall intercept $b_{0}$ was sampled from a centered normal distribution with standard deviation of 5.
+
+The covariates $x_i, i=1,...,p$ were sampled independently of $\tilde{\theta}$ from a multivariate normal distribution centered at the origin with a covariance matrix $\Sigma_x$, formed from a correlation matrix $\rho_x$ which has  an autoregressive structure $\text{AR}(1)$. The correlations considered here were $\rho \in  \{0,0.5\}$. Setting $\rho=0$ results in $\Sigma_x=I_p$ such that predictor variables are sampled independently. Finally, the outcome data $\tilde{y}$ was sampled as per Equation \eqref{eq:lklhd}.
+
+The obtained SBC results indicate that inference for our implementations of the R2D2 and R2D2M2 prior models is well calibrated in all considered configurations (see {\myosfresults} for the full results). For brevity, we only showcase a few selected results below. Specifically, we consider $(p,\mu_{R^2}, \varphi_{R^2}, a_{\pi})=( 100, 0.5, 1,0.5)$ and $K \in \{0, 1\}$. The absence of grouping factors, $K=0$, implies the use of the R2D2 prior.
+
+Figures \ref{fig:sbcresults-r2d2} and \ref{fig:sbcresults-r2d2m2} show ECDF difference plots of several model parameters for the R2D2 and R2D2M2 models, respectively. For the R2D2 model, we show results for $R^2$, $\sigma$, two overall coefficients and two components of $\phi$ chosen randomly. For the R2D2M2 model, we additionally show two varying coefficients chosen randomly too. Selection of the presented terms can be arbitrary, since the coefficients are exchangeable in the simulation process of all configurations. If ranks were perfectly uniform, the plots would display a horizontal line, but deviations from exact uniformity are to be expected because of the simulation process. All trajectories inside the shaded blue area indicate good calibration.
+These results provide evidence that inference for our implementation is correctly calibrated for the quantities of interest we have investigated (i.e., all model parameters). However, as \cite{sbcmanual} mention, SBC provides only a necessary but not sufficient condition for correct calibration. It is possible the incorrect calibration still occurred for some pushforward quantities of the model, although unlikely given the good calibration of all model parameters \citep{taltssbc}.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.96\textwidth, ]{images/sbc_plots/sbcexample_r2d2.pdf}
+	\caption{ECDF difference plots for the distributions of randomly chosen parameters in the R2D2 model. The blue areas in the ECDF difference plots indicate 95\%-confidence intervals under the assumptions of uniformity and thus allow for a null-hypothesis significance test of self-consistent calibration. The plots show that proper calibration has been achieved.}
+	\label{fig:sbcresults-r2d2}
+\end{figure}
+%-----------
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.96\textwidth, height=0.25\textheight]{images/sbc_plots/sbcexample_r2d2m2.pdf}
+	\caption{ECDF difference plots for the distributions of randomly chosen parameters in the R2D2M2 model. The plots show that proper calibration has been achieved.}
+	\label{fig:sbcresults-r2d2m2}
+\end{figure}
+%-----------
+%------
+\subsection{Simulations from sparse multilevel models}
+\label{subsection:GeneralSimMLM}
+\subsubsection{Data generation of multilevel models}
+We conducted simulation studies to analyze the performance of the R2D2M2 prior under different scenarios. To generate multilevel data we follow the approach of \cite{catalina2020projection}. Their simulation approach is sufficiently general to encompass the different forms (sparse or non-sparse) multilevel data that might be encountered in practice. A graphical model that represents the data generating process is shown in Figure \ref{fig:datagen} (see \cite{TikzBayesNet} for more details on this type of diagrams). The different data generating conditions are summarized in Table \ref{tab:sim2datahyperparams} in Appendix \ref{section:appendixC}.
+
+Again, we included all possible $q=p+1$ varying terms per grouping factor $K \in\{1,3\}$, with $p\in \{10,100,300\}$. The number of levels per grouping factor remains constant with a value of $L=20$. The covariates $x_i, i=1,...,p$ are generated from a multivariate normal distribution centered at the origin with a covariance matrix $\Sigma_x$, formed from a correlation matrix $\rho_x$ which has  an autoregressive structure $\text{AR}(1)$. The correlations considered were $\rho \in  \{0,0.5\}$.  The overall intercept $b_{0}$ and the overall coefficients $b_i, i=1,...,p$ are simulated independently from a normal distribution with mean zero and variances $\sigma_I^2=4, \sigma_b^2=9$, respectively. For a fixed covariate $i$, group $g$ and level $l$, the varying coefficients $u_{ig_j}$ are simulated from a normal distribution with mean zero and variance $\sigma_g^2=4$.
+
+To induce sparsity in the data generating process we set each coefficient $b_i, u_{ig_j}$ to zero with probabilities $v, z$ respectively. If an overall coefficient is set to zero, then we also set the corresponding varying counterparts to zero (i.e if $b_i=0$ then $u_{ig_j}=0,\, \forall g, j$). The values for $v$ were set to $\{0.5,0.95\}$ and $z$ was always set equal to $v$. The value of the residual standard deviation $\sigma$ is adjusted in each simulation to maintain the prespecified value for the true proportion of explained variance $R^2_0 \in \{0.25, 0.75\} $, to do so we used Equations (\ref{eq:r2fvarmu}) and (\ref{eq:vardecomposition}).
+%-----------------------------
+\begin{figure}[t!]
+\centering
+\input{tikz/data_gen_sim}
+  \caption{ A graphical model showing the data generating process for the simulations. The $*$ symbol denotes the usual product and $\leftmapsto$ represents the use of Equations (\ref{eq:r2fvarmu}) and (\ref{eq:vardecomposition}) to find the value of $\sigma$ to maintain the pre-specified value of $R_0^2$. The normal distributions considered for the coefficients $b_i,u_{ig_j}, \Sigma_x$ have an expected value of 0. The mean of $y_n$, given by $\mu_n$, is calculated using Equation \eqref{eq:lklhd}.  }
+  \label{fig:datagen}
+\end{figure}
+%-----------------------------
+\subsubsection{Prior Hyperparameters}
+\label{subsubsection:priorhyperparams}
+In the model, we set the $R^2$ prior hyperparameters to $\mu_{R^2}\in \{0.1,0.5\}$, $\varphi_{R^2} \in \{0.5,1\}$, which leads to $a_2 \in \{ 0.45, 0.25, 0.9, 0.5\}$. Values for which $a_2 \leq 1/2$ allow the marginal prior distributions of the regression terms to have heavier tails than the Cauchy distribution (see Proposition \ref{prop:tailprior}) and vice-versa. The hyperparameter $\alpha$ is set to $\alpha=(a_\pi,...,a_\pi)'$ with $a_\pi \in \{0.5,1\}$ to test the different conditions near the origin, since values of $a_\pi \leq 1/2$ lead to unbounded marginal priors and vice-versa (see Proposition \ref{prop:originprior}). Therefore, after fully crossing all these factors, we have a total of 8 different hyperparameter setups, which are summarized in Table \ref{tab:sim2hyperparams}. For brevity in the upcoming discussion of results, we will only refer to the indexes of these setups rather than to the specific hyperparameter values.
+%--------------------------
+\begin{table}[ht]
+\caption{Configurations of the prior hyperparameters that were selected to test the R2D2M2 model under a sparse multilevel simulation setup.  }
+\label{tab:sim2hyperparams}
+\centering
+\scalebox{1}{
+\begin{tabular}{lrrrrrrrr}
+  \hline
+Hyperparameter  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+$a_\pi$ & 0.5 & 1.0 & 0.5 & 1.0 & 0.5 & 1.0 & 0.5 & 1.0 \\
+  $\mu_{R^2}$ & 0.1 & 0.1 & 0.5 & 0.5 & 0.1 & 0.1 & 0.5 & 0.5 \\
+ $\varphi_{R^2}$ & 0.5 & 0.5 & 0.5 & 0.5 & 1.0 & 1.0 & 1.0 & 1.0 \\
+   \hline
+\end{tabular}
+}
+\end{table}
+%--------------------------
+The selected values of the hyperparameters were chosen to create scenarios in which the  marginal priors of the regression terms exhibit (un)boundedness near the origin and heavier (lighter) tails than the Cauchy distribution. For instance, consider setup (5) in Table \ref{tab:sim2hyperparams}, when $a_\pi= 0.5$ and $(\mu_{R^2}, \varphi_{R^2})=(0.1,1)$ (leading to $a_2=0.9$) we can expect that the prior will exert high shrinkage while presenting lighter tails. In this case, the prior is unbounded near the origin and there is major concentration of mass near the origin. In contrast, we can expect setup (4) to exert comparably little shrinkage, since the combination of boundedness ($a_\pi=1$) at the origin and heavy tails ($a_2=0.25$) of the marginal priors will lead the R2D2M2 prior to shift its mass to the tails, thus focusing even more on detecting relevant signals. These different behaviors show the flexibility of the R2D2M2 prior. Similar analyses can be conducted for the other hyperparameter setups. The prior for the residual standard deviation $\sigma$ was chosen as a half Student-$t$ distribution with scale $\eta = \text{sd}(y)$ and $\nu=3$ degrees of freedom, allowing for a finite variance but still with a heavy right tail.
+
+The simulation setup provides an amount of 48 different data generation configurations, on which each of the different 8 hyperparameter setups will be tested. After fully crossing these conditions we have a total of 384 different simulation configurations. Table \ref{tab:sim2datahyperparams} in Appendix \ref{section:appendixC} summarizes the different conditions we have considered. For each configuration, we generated $T = 40$ datasets consisting of $N = 200$ training observations each. Out-of-sample predictive metrics were computed based on $N_{\rm test} = 200$ test observations independent of the training data. The test set was designed to include all current grouping factors and levels that are already in the training test, i.e., we are not performing prediction of new levels. To study the performance of the Bayesian models with the R2D2M2 prior, we have made use of several metrics. The complete list of metrics recorded for the experiments can be found in our OSF repository \footnote{\myosfresults}. The primarily important ones are explained as they come up below.
+
+\subsubsection{Analysis of results}
+\label{subsubsection:analysis}
+We show an analysis for three out of the total 48 different data generation configurations, whose results are representative of the overall results. They describe how the R2D2M2 prior performs in these scenarios with the different hyperparameter setups shown in Table \ref{tab:sim2hyperparams}. The complexity of the different scenarios considered increases in terms of number of coefficients included in the model. For the selected configurations $K=1,3, \rho=0, v=z=0.95, R^2_0= 0.75$ and $p \in \{10,100,300 \}$. For the different values of $p$, the total number of coefficients included in the linear predictor are  $\{230, 2120, 6320\}$ when $K=1$ and $\{670, 6160, 18360\}$ when $K=3$, respectively. The $K=1$ and $K=3$ scenarios paint qualitatively the same picture. Of course, model performance in $K=3$ scenarios was uniformly worse as it is considerably harder, but no new patterns (e.g., in terms of prior hyperparameter choice) emerged. For brevity, the results for $K=3$ are only shown in Appendix \ref{section:appendixC}. The combination of $R^2_0=0.75$ and $p_i=0.95$ implies that  few (strong) signals account for most of the variability of $y$, a scenario which represents that only a handful of covariates have a substantial effect on the response. The R2D2M2 prior performs similarly for the other data generation setups and the results can be found on {\myosfresults}.
+
+\paragraph{Estimation error}\mbox{}
+
+We present summaries for several metrics in Table \ref{tab:predtab1} considering $K=1$. Similar results can be found when $K=3$ in Table $\ref{tab:predtab3}$ in Appendix \ref{section:appendixC}. The Root Mean Square Error ($\rmse$) of parameter estimates (as represented by the parameter's posteriors) was calculated for all the parameters using the posterior mean as an estimator across the $T$ replications. The $\rmse$ is an indicator of estimation error and balances bias and variance. A low value is desirable with zero indicating the ideal case (perfectly precise and unbiased estimation). In this sense, it can be seen as criterion for proper parameter recovery. As $p$ increases, the task of parameter recovery rises in complexity; however, $\rmse$ values are low even in the most difficult scenarios, when $p=300$.
+
+%--- K=1
+\begin{table}[t!]
+\centering
+\caption{Predictive Table results with $K=1$. }
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\hline
+\multicolumn{10}{c}{Scenario $K=1, \rho=0,  p_i=0.95, R_0^2=0.75, N=200 , \alpha=0.05$} \\
+\hline
+p & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & RMSE & 0.02 & 0.03 & 0.02 & 0.02 & 0.02 & 0.02 & 0.01 & 0.02 \\
+   & elpd & -434 & -427 & -441 & -449 & -430 & -433 & -430 & -438 \\
+   & $\meff$ & 32 & 38 & 33 & 44 & 31 & 41 & 31 & 45 \\
+  100 & RMSE & 0.02 & 0.02 & 0.02 & 0.02 & 0.02 & 0.02 & 0.02 & 0.01 \\
+   & elpd & -1271 & -1712 & -1319 & -1654 & -1029 & -1567 & -1388 & -1292 \\
+   & $\meff$ & 334 & 485 & 333 & 548 & 289 & 481 & 382 & 440 \\
+  300 & RMSE & 0.03 & 0.03 & 0.02 & 0.02 & 0.02 & 0.02 & 0.02 & 0.02 \\
+   & elpd & -3848 & -3572 & -4219 & -3340 & -3234 & -3335 & -3708 & -3367 \\
+   & $\meff$ & 1412 & 1662 & 1560 & 1756 & 1111 & 1208 & 1330 & 1652 \\
+   \hline
+\end{tabular}
+}
+\label{tab:predtab1}
+ \begin{tablenotes}
+      \small
+      \item  Results are shown for the Root Mean Squared Error (RMSE), expected log-pointwise predictive density (\elpd) on the test set and the effective number of nonzero coefficients $\meff$. The numbers 1-8 indicate the hyperparameter setup considered.
+\end{tablenotes}
+\end{table}
+
+ Figure \ref{fig:posteriorbshrinkage} shows the posterior shrinkage towards zero on the overall coefficients for the case in which $K=1,p=300$ when pooling over the different hyperparameter combinations and all simulations together. To show this, we compare the true value of the coefficient $b$ with its posterior mean. The red diagonal line is the identity function and points that fall exactly on it indicate perfect posterior point estimation and no shrinkage. If the true $b$ is positive (negative) and the corresponding dot is below (above) the diagonal line, then the posterior is shrinking the term towards zero. This 'chair-like' appearance is usually exhibited by shrinkage priors \citep[see][for more details]{Horseshoe, BayesPenalizedRegSara} and is present under the different setups we have considered. This behavior indicates that the prior is exerting more shrinkage on weak signals and is consistent with the bounded influence and tail robustness properties the R2D2M2 prior possesses. Sufficiently strong signals are correctly detected and deemed as important, hence being shrunken less by the prior.
+
+We see that, as the complexity of the problem increases (e.g., going from $K=1$ to $K=3$), the model responds by performing more shrinkage and by increasing the threshold a true coefficient needs to exceed to remain relatively unshrunken. This is especially clear for the $p=300$ case since, as $K$ increases, a flatter and wider region appears in the center of the chair-like plot, thus representing that the threshold for detection and bounded influence has increased and everything below it will be highly shrunken. This is an expected behavior of robust shrinkage priors \citep{Horseshoe}. As complexity increases, they react by shrinking more and thus being more strict as to what they consider as a relevant signal.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.25\textheight]{images/results_b/results_pooled_plot_bs_all.png}
+	\caption{Posterior shrinkage of the overall coefficients pooled over the different hyperparameter setups and simulations. We show the true value versus the posterior mean. The red diagonal line is the identity function. Shrinkage is higher for weaker (in magnitude) signals resulting in ''chair-like" plots. As the complexity increases, the prior increases the threshold above which (in absolute terms) shrinkage is noticeably weaker. }
+	\label{fig:posteriorbshrinkage}
+\end{figure}
+%-----------
+%
+\paragraph{Out-sample-predictive performance and shrinkage}\mbox{}\\
+
+To assess predictive performance we estimate the expected log-pointwise predictive density (\elpd) defined by \cite{AkiSurvey} as
+%
+\[ \elpd=  \sum_{i=1}^N \int p_t(\tilde{y})\log p(\tilde{y}_i|y) d\tilde{y}_i ,  \]
+%
+where $p(\tilde{y}_i|y)$ is the posterior predictive distribution and $p_t(\tilde{y}_i)$ is the distribution representing the true data generating process. The $\elpd$ is as measure of predictive accuracy for the $N$ data points taken one at a time and measures the goodness of the whole predictive distribution. We compute and report an estimator for $\elpd$, denoted as $\lpdhat$ on the test set to evaluate predictive performance. Denote the draws from the posterior distribution by $\theta^{(s)}$ where $s=1,...,S$, then the $\elpd$ can be estimated by
+%--------
+\[  \widehat{\text{elpd}}= \sum_{i=1}^N \log \left(\frac{1}{S} \sum_{s=1}^S p(y_i|\theta^{(s)})  \right) .       \]
+%--------
+We proceed to discuss how out-of-sample predictive performance (as measured via elpd) is intrinsically related to the amount of shrinkage done by the prior. We also discuss how prediction can be improved by imposing a higher amount of shrinkage via the hyperparameters. As a reference, the $\elpd$ values on the training set are usually close to $-400 \pm 50$ for all cases, even as the number of covariates increases. Considering the test data data, Table \ref{tab:predtab1} shows that in the comparably simple case of $p=10$, all hyperparameter setups are providing similar point estimates for the $\elpd$ on test data and that it is similar to the $\elpd$ on training data. Figure \ref{fig:lpd_test_1_ridges} shows the distributions  of the point estimator of $\elpd$ pooled across the different $T=40$ trials arranged by setup and number of covariates along with $95\%$ confidence intervals and the median. When $p=10$, the distributions have similar behavior, indicating that under this relatively simple case (few predictor terms), we are able to properly generalize under the different hyperparameter setups.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.23\textheight]{images/lpd_plots/elpd_test_1.pdf}
+	\caption{Estimated densities of the $\elpd$ estimators on the test set as $p$ increases and arranged by hyperparameter setups when $K=1$. The variation depicted is across $T=40$ simulation trials. The vertical lines inside each density represent the $5\%, 50\%, 95\%$ quantiles.}
+	\label{fig:lpd_test_1_ridges}
+\end{figure}
+%-----------
+
+When $p=100$, Table \ref{tab:predtab1} shows that there is a noticeable variability between the results of the point estimates of the $\elpd$ in the test set. Figure \ref{fig:lpd_test_1_ridges} shows that the distributions have different concentration around their median and in the width of their $95\%$ confidence intervals. The fact that $\elpd$ decreases (while holding the number of test observations constant) is an indicator that the problem becomes more complex, to which the prior responds by increasing the amount of shrinkage it exerts.
+
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.20\textheight]{images/meff_plots/meff_1.pdf}
+	\caption{Estimated densities of the posterior median of the effective number of coefficients per hyperparameter setup and number of covariates when $K=1$. The variation depicted is across $T=40$ simulation trials. The vertical lines inside each density represent the $5\%, 50\%, 95\%$ quantiles.}
+	\label{fig:post_meff_1}
+\end{figure}
+%-----------
+
+ Figure \ref{fig:post_meff_1} shows the distributions of the posterior medians of $\meff$ across the different $T$ trials arranged by hyperparameter setup and number of covariates, along with $95\%$ confidence intervals and the median. Indeed, setup (5) produces the most shrinkage, since it sacrifices detection of large signals by having a light tail and shifting mass near the origin, thus shrinking more. It is also expected that this hyperparameter setup performs well with respect to {\elpd} since the current simulation setup has high levels of sparsity present (around 95\% of the coefficients are truly zero). A somewhat better balanced condition, which presents a trade-off between predictive performance, detection of large signals and shrinkage, would be to consider conditions similar to setup (1) where $(\mu_{R^2}, \varphi_{R^2})=(0.1,0.5)$, which still allows for heavy tails.
+%--------------------
+\begin{figure}[b!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth]{images/meff-vs-lpd_plots/vs_meff-lpd_group_1.pdf}
+	\caption{Relationship between $\elpd$ and shrinkage by hyperparameter setup when $K=1$. The non-linear relationships described by the colored lines in general shows a decreasing behavior as $\meff$ increases. Curves were estimated via thin-plate splines as implemented in the R package \texttt{mgcv} \citep{Wood2011mgcv}.  }
+	\label{fig:meff-vs-lpd-grouped_1}
+\end{figure}
+%----------------------
+Figure \ref{fig:meff-vs-lpd-grouped_1} shows the relationship between $\meff$ and $\elpd$ when estimating it over the different setups for a fixed value of $p$ across the different $T$ trials. Similar results are obtained when averaging over different hyperparameter setups but are not shown here. Importantly, this behavior indicates that over-shrinking has not yet occurred in any of the different configurations, as we would see an increasing and then decreasing behavior of elpd as $\meff$ increases. Overall, a general trend emerges in these results: As $\meff$ decreases, $\elpd$ increases and out-of-sample predictive performance thus improves. Therefore, to improve the latter, the user can impose hyperparameters $(\mu_{R^2}, \varphi_{R^2})$ that serve the purpose of regularizing instead of necessarily reflecting prior knowledge directly (as the latter might suggest a higher $R^2$ than is sensible for regularization).
+
+\paragraph{Credible Interval Coverage}\mbox{}\\
+
+We evaluated the coverage properties of the R2D2M2 model by inspecting marginal credibility intervals of the regression coefficients of different size $1-\alpha$. Table \ref{tab:errortab1} reports Type I errors, Type II errors and False Discovery Rates (FDR) on the set of all coefficients regardless of the type and on the set of overall coefficients in parenthesis. To carry out the hypothesis $H_0: \theta= \theta_0$ vs $H_1: \theta \neq \theta_0$ at level $\alpha$, we form the credibility interval of size $1-\alpha$ denoted by $I_\alpha$. We reject $H_0$ at level $\alpha$ if $\theta_0 \not\in I_\alpha$. To estimate the Type I and Type II error we consider those coefficients that are truly zero and truly non-zero, respectively. Denote by $V$ and $R$ the total number of hypothesis that are rejected but are true (also known as ''False Positives") and the total number of hypothesis respectively (namely, ''discoveries") and let $Q=V/R$, then the FDR is defined as $\text{FDR}=\mathbb{E}(Q)$ \citep{FDRBenjamini}. The FDR attempts to conceptualize Type I error in the multiple comparison setting and to identify as many discoveries, while incurring in a relatively low proportion of false positives. To estimate the FDR, we consider the truly zero coefficients and make use of the same test as before, while recording $Q$ for each simulation. When interpreting these results, keep in mind that we should not necessarily expect correct frequentist coverage from our models, since they were not built to satisfy that goal.
+
+%---------------- Error table
+%--- K=1
+\begin{table}[t!]
+\caption{Error Table when $K=1$ and $\alpha=0.05$.  }
+\label{tab:errortab1}
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llllllllll}
+\hline
+\multicolumn{10}{c}{Scenario $K=1, \rho=0,  p_i=0.95, R_0^2=0.75, N=200 , \alpha=0.05$} \\
+  \hline
+p & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & Type I error & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.01) \\
+   & Type II error & 0.24 (0.20) & 0.24 (0.17) & 0.15 (0.09) & 0.17 (0.12) & 0.23 (0.18) & 0.28 (0.23) & 0.09 (0.08) & 0.25 (0.17) \\
+   & FDR & 0.04 (0.04) & 0.01 (0.01) & 0.03 (0.03) & 0.01 (0.02) & 0.00 (0.01) & 0.02 (0.05) & 0.00 (0.00) & 0.09 (0.07) \\
+  100 & Type I error & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.01) \\
+   & Type II error & 0.43 (0.26) & 0.40 (0.29) & 0.35 (0.22) & 0.45 (0.27) & 0.44 (0.24) & 0.47 (0.27) & 0.41 (0.22) & 0.36 (0.23) \\
+   & FDR & 0.01 (0.01) & 0.02 (0.02) & 0.01 (0.01) & 0.08 (0.08) & 0.01 (0.01) & 0.05 (0.05) & 0.04 (0.04) & 0.01 (0.01) \\
+  300 & Type I error &  0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.01) \\
+   & Type II error & 0.72 (0.58) & 0.68 (0.55) & 0.73 (0.57) & 0.73 (0.59) & 0.72 (0.59) & 0.75 (0.64) & 0.69 (0.58) & 0.76 (0.61) \\
+   & FDR & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.00) & 0.00 (0.01) \\
+   \hline
+\end{tabular}
+}
+\begin{tablenotes}
+     \small
+     \item We show the results for all the coefficients as well as results for the overall coefficients inside the parenthesis.
+\end{tablenotes}
+\end{table}
+%----------------
+
+For a pre-specified level of $\alpha=0.05$, Table \ref{tab:errortab1} shows that Type I errors are controlled for (at level $\alpha$) in both the set of all coefficients and the set of overall coefficients (presented in parenthesis). The FDR is also controlled at this level for both types of terms. On the other hand, Type II errors increase monotonically across the hyperparameter combinations with increasing number of overall coefficients in the model. This is expected since credibility intervals contain zero even for the majority of true non-zero coefficients due to the shrinkage the prior imposes when responding to the complexity of the problem at hand. What is more, Type II errors are worse for the set of all coefficients than for the set of overall, which is the result of marginal posterior credibility intervals of varying coefficients being wider than their overall counterparts. This is bound to happen, since we have less information about the varying coefficients than we do about the overall coefficients and, as mentioned before in Section \ref{subsection:shrinkagefactors}, the former are thus subject to higher shrinkage.
+
+The size of $\alpha$ determines the width of the credibility intervals and therefore has a direct influence on the error rates. Since the R2D2M2 prior produces Type I errors that are sufficiently low (and much lower than $\alpha$ itself), we can adjust $\alpha$ to decrease the Type II error, sacrificing Type I error control in exchange for statistical power. Type I errors are usually known as False Positive Rates (FPR). In this context, it is usual to study the complement of the Type II error known as the True Positive Rate (TPR). Likewise, modifying $\alpha$ will lead to a trade-off between the FPR and TPR and allows us to study ROC curves, which are usually presented when evaluating the efficiency of a classification algorithms \citep{roccurves}.
+
+Figure \ref{fig:roc_ALL_1} shows how we can improve the TPR while increasing the FPR as we vary $\alpha \in \{ 0.02, 0.05, 0.10,0.20,0.50, 0.66 \}$ when forming the credibility interval $I_\alpha$ and considering all of the coefficients. Likewise, the same behavior is observed when taking into account only overall coefficients in Figure \ref{fig:roc_OC_1}. To illustrate how we can make better trade-offs between TPR and FPR, consider the most complex case when $p=300$ and a value of  $\alpha = 0.2$. This results in FPR $\approx 0.2$ and TPR $\approx 0.8$ for the set of overall coefficients. Figures \ref{fig:roc_ALL_1} and \ref{fig:roc_OC_1} also indicate that our procedure is substantially better than random classification even in the most complex cases. This occurs even without performing correction for multiple comparisons and although the prior was not built for variable selection per se. Nonetheless, we recommend to separate inference and selection procedures as argued by \cite{PiironenProjInf}. After performing inference via the R2D2M2 prior, projection prediction methods could be applied in a second step \cite{PiironenProjInf, catalina2020projection}, but studying this is out of scope of the present paper.
+
+%----- Coverage tables
+%--- K=1
+\begin{table}[t!]
+\caption{Coverage table when $K=1$. }
+\label{tab:covtab1}
+\centering
+\scalebox{0.65}{
+\begin{tabular}{lllllllllll}
+\hline
+\multicolumn{10}{c}{Scenario $K=1, \rho=0,  p_i=0.95, R_0^2=0.75, N=200 , \alpha=0.05$} \\
+  \hline
+p & Description & Metric & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+  \hline
+10 & All & Coverage & 0.99 (0.91) & 0.99 (0.89) & 0.99 (0.90) & 0.99 (0.89) & 0.99 (0.89) & 0.99 (0.81) & 0.99 (0.91) & 0.99 (0.92) \\
+   &  & Width & 0.86 (2.65) & 1.02 (2.56) & 0.96 (2.35) & 1.03 (2.21) & 0.85 (2.42) & 0.95 (2.27) & 0.91 (1.63) & 0.98 (2.30) \\
+   & Overall & Coverage & 0.97 (0.83) & 0.98 (0.86) & 0.98 (0.92) & 0.98 (0.89) & 0.98 (0.91) & 0.96 (0.78) & 0.98 (0.90) & 0.96 (0.83) \\
+   &  & Width & 0.44 (0.65) & 0.52 (0.74) & 0.50 (0.73) & 0.52 (0.69) & 0.44 (0.66) & 0.50 (0.70) & 0.47 (0.67) & 0.50 (0.66) \\
+  100 & All & Coverage & 0.99 (0.71) & 0.99 (0.68) & 0.99 (0.66) & 0.99 (0.62) & 0.99 (0.68) & 0.99 (0.65) & 0.99 (0.70) & 0.99 (0.67) \\
+   &  & Width & 1.40 (2.32) & 1.43 (1.98) & 1.33 (2.25) & 1.39 (1.94) & 1.33 (2.35) & 1.54 (2.18) & 1.3 (2.22) & 1.34 (1.99) \\
+   & Overall & Coverage & 0.98 (0.81) & 0.98 (0.80) & 0.98 (0.76) & 0.97 (0.77) & 0.98 (0.82) & 0.98 (0.8) & 0.99 (0.81) & 0.98 (0.72) \\
+   &  & Width & 0.88 (1.35) & 0.94 (1.36) & 0.84 (1.35) & 0.90 (1.33) & 0.85 (1.40) & 1.01 (1.45) & 0.8 (1.26) & 0.88 (1.33) \\
+  300 & All & Coverage & 0.99 (0.53) & 0.99 (0.45) & 0.99 (0.54) & 0.99 (0.44) & 0.99 (0.51) & 0.99 (0.42) & 0.99 (0.54) & 0.99 (0.44) \\
+   &  & Width & 1.75 (2.16) & 1.66 (1.96) & 1.79 (2.20) & 1.68 (2.01) & 1.73 (2.14) & 1.78 (2.07) & 1.67 (2.05) & 1.76 (2.06) \\
+   & Overall & Coverage & 0.98 (0.67) & 0.97 (0.52) & 0.98 (0.69) & 0.97 (0.53) & 0.98 (0.66) & 0.96 (0.47) & 0.98 (0.64) & 0.97 (0.49) \\
+   &  & Width & 1.41 (2.21) & 1.38 (2.08) & 1.44 (2.28) & 1.39 (2.10) & 1.4 (2.24) & 1.49 (2.17) & 1.34 (2.12) & 1.47 (2.17) \\
+   \hline
+\end{tabular}
+}
+\begin{tablenotes}
+     \small
+     \item Credibility intervals were formed at a $\alpha=0.05$ level. We show results for the set of all coefficients mentioned in the description and for the non-zero corresponding cases inside parenthesis.
+\end{tablenotes}
+\end{table}
+%----------------
+Table \ref{tab:covtab1} reports coverage properties of $95\%$ credibility intervals for the set of all coefficients and for the set of all coefficients. The properties related to the subset of non-zero coefficients are reported in parenthesis. Two main points stand out: 1) Under a sparse regime, coverage of non-zero coefficients is in general a harder problem and the proportion of coverage is less for non-zero coefficients than when considering the set of all coefficients at once. Due to the high number of truly zero coefficients ($95\%$ in this scenario) the prior attempts to adapt to the sparsity at the expense of the non-zero coefficients.  2) On average, credibility intervals are wider for the non-zero coefficients. Since the prior adapts itself to the sparsity, it behaves conservatively when it detects a signal, performing shrinkage if the true value of the coefficient is not sufficiently high enough. Additionally, on average, the width of the credibility intervals increases with $p$ (or with $q$ for that matter) since there remains more epistemic uncertainty as model complexity increases given constant data set size.
+%---------------- ROC plots
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, height=0.25\textheight]{images/roc_plots/roc_plot_ALL_1.pdf}
+	\caption{ROC curves for all coefficients arranged by hyperparameter setups when $K=1$. Points are calculated by changing $\alpha$ when computing credibility intervals. All ROC curves shown are above the identity line. }
+	\label{fig:roc_ALL_1}
+\end{figure}
+%-----------
+
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[width=0.99\textwidth, height=0.2\textheight]{images/roc_plots/roc_plot_OC_1.pdf}
+	\caption{ROC curves for the overall coefficients when $K=1$. Points are calculated by changing $\alpha$ when computing credibility intervals. All ROC curves shown are above the identity line.}
+	\label{fig:roc_OC_1}
+\end{figure}
+%-----------
+
+\subsection{Application to riboflavin production data}
+
+To illustrate the performance and usefulness of our developed models on real life challenges, we consider the \texttt{riboflavinGrouped} dataset provided by DSM (Kaiseraugst, Switzerland) and made publicly available by \cite{BuehlmannBio}. This dataset has been used to study the associations between gene expressions and riboflavin (vitamin $B_2$) \citep{BuehlmannBio, LinLina}. The response variable $y$ to be predicted is the logarithm of the riboflavin production rate. The data contains the expression levels of $p=4088$ candidate genes that might influence the riboflavin production. There are $N=111$ observations arranged into $L=28$ groups. Each group represents a strain (specimen) of a genetically engineered \textit{Bacillus subtilis} from which observations were taken. Different groups correspond to different strains of \textit{Bacillus subtilis}, each having from 2 to 6 observations at different time points where the logarithm of the riboflavin production rate and the expression levels of the $p=4088$ candidate genes were recorded.
+
+The size of the data $N=111$ is very small when compared to the number of candidate genes. \cite{BuehlmannBio} implemented a model with $p=4088$ overall coefficients of which $q=2$ were considered as varying among the different groups, however it is not specified in their work which are the ones they have considered to vary and why they have considered them.  \cite{LinLina} proposed modeling the association between the gene expressions and the production of riboflavin with a varying intercept model, i.e., $p=4088$ overall terms and $q=1$ varying term, however they do not take into account varying slopes nor models of different sizes. As an important result, both author groups reported the expression level of a specific gene, \textit{YXLE-at}, as significantly associated with riboflavin production.
+
+Our main goal in this case study is to test under which circumstances the R2D2M2 model is able to  detect the gene \textit{YXLE-at} as influential on the riboflavin production rate as well, even when considering much more complicated models than in earlier analysis of this dataset. To do so we built models of increasing size in terms of number of regression coefficients that will always include this main covariate of interest.  A model with $p$ overall coefficients is formed in the following way: we first include the expression level of gene \textit{YXLE-at} as a covariate and then include the $p-1$ covariates most correlated with \textit{YXLE-at}; excluding those 5 covariates that are correlated with \textit{YXLE-at} above $|r| = 0.98$, which makes them practically indistinguishable from the latter. Thus the maximal model in terms of overall coefficients is of size $p=4083$. Once a covariate is included in the model, its varying coefficients counterpart is also included along with a varying intercept term. Including overall and varying coefficients the size of the model in terms of regression coefficients ranges from $P = 57$ when $p=1$ to $P = 118406$ when $p=4083$.  The hyperparameters of the R2D2M2 prior are set to $(\mu_{R^2}, \varphi_{R^2} , a_\pi )= (0.1,1,0.25)$ to encode that we expect a fair amount of noise and to allow it to shrink most of the covariates to zero. This makes sense here, since only very few genes are expected to influence riboflavin production rate.
+%-----------
+ \begin{figure}[t!]%
+	\centering
+	\includegraphics[keepaspectratio, width=0.99\textwidth, ]{images/ribo_plots/riboplotgrid.pdf}
+	\caption{Plots of posterior means and $95\%$ credibility intervals related to model size in terms of the total number of overall coefficients in the model. Results for the overall coefficient and corresponding variance component of the overall coefficient of the label \textit{YXLE-at} are shown in the top left and top right plots respectively. The bottom left and bottom right plot show results for the proportion of allocated variance of \textit{YXLE-at} and $R^2$ respectively. The blue, green and red vertical lines indicate the point where the total number of coefficients, total number of terms and total number of overall coefficient exceed the number of observations $N=111$. }
+	\label{fig:ribo-grid}
+\end{figure}
+%-----------
+
+For the gene expression level of \textit{YXLE-at}, Figure \ref{fig:ribo-grid} shows plots of posterior means and $95\%$ credibility intervals of the corresponding overall coefficient $b$, variance $\lambda^2$ of the overall coefficient, and allocation component $\phi$ (we drop the indices since we will only discuss the case of this gene) as well as $R^2$ related to the size of the model in terms of overall coefficients. The point in which the amount of observations is surpassed by the total number of coefficients $p+(q+1)L$, number of terms $p+q+1$ (i.e., number of components in $\phi$) and number of covariates $p$ is indicated by blue, green and red vertical lines, respectively. The gene \textit{YXLE-at} is deemed as influential up to a certain point of $p$, when $p=613$ to be precise, as the credibility intervals do not include zero; however, detection becomes more complicated as the size of the model increases, since the model responds to the complexity of the problem by shrinking coefficients stronger towards zero until this point, even the coefficients of a gene we now know to be truly relevant. This is in line with what we have shown in our simulations in Subsection~\ref{subsection:GeneralSimMLM} and demonstrates that the theoretically expected behavior of the prior can also be found when analysing real data. We reiterate here that shrinkage priors are not made to directly select variables but rather to provided sensible inference. If selection was really the goal, two step procedures would be recommended, of which fitting an R2D2M2 prior model would only be the first step \citep{PiironenProjInf, catalina2020projection}.

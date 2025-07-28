@@ -1,0 +1,327 @@
+\section{Posterior computation}
+\label{section:appendixB}
+
+\subsection{Stan}
+
+To obtain draws from the posterior distribution we have implemented our model in Stan  \citep{StanJSS, stan2022}, which uses a substantially extended implementation of the No-U-Turn Sampler (NUTS) from \cite{nuts}. This sampler is an adaptive form of Hamiltonian Monte Carlo \citep{handbookmcmc}. The following code is fully functional however we also maintain a current version in \myosfresults .
+
+This implementation considers $K$ grouping factors with multiple levels $L$ each and $D$ overall coefficients, including the overall intercept. All groups have the same number of levels $L_g$ as well as the same number of varying coefficients $D_g$. $D_g$ is the number of group level effects and is including the varying intercepts as well, i.e Group $K$ level $l$ has $D_g$ varying coefficients. This implementation is able to work with data where $D, K, L_g$ can vary with no need to manually modify the Stan code. However, the code can be easily modified to handle the case when groups have different amount of levels and terms per group. It is also possible to briefly modify this code in order to work with $q \leq p$ varying terms. The order of the varying terms should consider the relationship with the $i$th covariate since we scale by $\sigma_{x_i}$.
+
+\begin{small}
+\begin{verbatim}
+// Stan code for the R2D2M2 prior.
+functions {
+
+  vector R2D2(vector z, vector sds_X, vector phi, real tau2) {
+    /* Efficient computation of the R2D2 prior
+    * Args:
+    *   z: standardized population-level coefficients
+    *   phi: local weight parameters
+    *   tau2: global scale parameter (sigma is inside tau2)
+    * Returns:
+      *   population-level coefficients following the R2D2 prior
+    */
+      return  z .* sqrt(phi * tau2) ./ sds_X ;
+  }
+
+}
+data {
+  int<lower=1> N;  // total number of observations
+  vector[N] Y;  // response variable
+  int<lower=1> D;  // number of population-level effects
+  matrix[N, D] X;  // population-level design matrix
+                   // including column of 1s
+  int<lower=0> K; // number of groups
+  vector[D-1] sds_X; // column sd of X before centering.
+                    //Estimate or real values.
+
+  //---- data for group-level effects
+
+  int<lower=1> Lg;  // number of  levels per group (constant)
+  int<lower=1> Dg; // number of coefficients per level per group
+                   //(D_g constant per group)
+  int<lower=1> J[N,K]; // grouping indicator matrix
+                      // per observation per group K
+
+
+  //---- group-level predictor values
+  matrix[Dg,N] Z[K];
+
+  //---- data for the R2D2 prior
+  vector<lower=0>[ (D-1)+K+(Dg-1)*K] R2D2_alpha;
+  real<lower=0> R2D2_mean_R2;  // mean of the R2 prior
+  real<lower=0> R2D2_prec_R2;  // precision of the R2 prior
+  int prior_only;  // should the likelihood be ignored?
+}
+
+transformed data {
+  int Dc = D - 1; //
+  matrix[N, Dc] Xc; //centered version of X without an intercept
+  vector[Dc] means_X;//column means of X before centering
+  vector[Dc] var_X;
+  vector[N] Yc;
+  real Ymean;
+  for (i in 2:D) {
+    means_X[i - 1] = mean(X[, i]);
+    var_X[i-1]= sds_X[i-1]^2;
+    Xc[, i - 1] = (X[, i] - means_X[i - 1]) ;
+  }
+
+  Ymean= mean(Y);
+  for (i in 1:N) {
+    Yc[i]= Y[i]-mean(Y);
+  }
+
+}
+
+parameters {
+  real Intercept;  // temporary intercept for centered predictors
+  vector[Dc] zb; // standardized population-level effects
+  matrix[Dg,Lg] z[K]; // standardized group-level effects
+  real<lower=0> sigma;  // standard deviation of response
+
+  // local parameters for the R2D2M2 prior
+  simplex[Dc+K+(Dg-1)*K] R2D2_phi;
+  // R2D2 shrinkage parameters
+  /*Convention of indexing: First Dc for overall effects,
+                             group of K for varying intercepts,
+                            Batches of Dc for each grouping factor */
+
+  real<lower=0,upper=1> R2D2_R2;  // R2 parameter
+
+}
+
+transformed parameters {
+
+  vector[Dc] b;  // population-level effects
+
+  matrix[Dg,Lg] r[K]; // actual group-level effects
+
+  real R2D2_tau2;  // global R2D2 scale parameter
+  R2D2_tau2 =  R2D2_R2 / (1 - R2D2_R2);
+
+  // compute actual overall regression coefficients
+  b = R2D2(zb, sds_X, R2D2_phi[1:Dc], (sigma^2) * R2D2_tau2);
+
+  for(k in 1:K){
+    // varying intercepts
+    // Dc+k is the kth varying intercept
+    r[k,1,] = (sigma * sqrt(R2D2_tau2 * R2D2_phi[Dc+k ])
+              * (z[k,1,]));
+    for(d in 2: Dg){
+      // group level effects
+      // (k-1)Dc indexes the beginning of the kth batch of scales
+      r[k,d,]= sigma /(sds_X[(d-1)]) *
+                sqrt(R2D2_tau2 *
+                R2D2_phi[Dc+K+ (k-1)*(Dg-1) +(d-1) ]) * (z[k,d,]);
+
+    }
+  }
+}
+
+model {
+  // likelihood including constants
+
+  if (!prior_only) {
+    // initialize linear predictor term
+    vector[N] mu = Intercept + rep_vector(0.0, N);
+    for (n in 1:N) {
+      // add more terms to the linear predictor
+
+      for(k in 1:K){
+        mu[n]+=dot_product(r[k,,J[n,k]], Z[k,,n]) ;
+        }
+
+    }
+    // mu+ Xc*b
+    target += normal_id_glm_lpdf(Yc | Xc, mu, b, sigma);
+  }
+
+
+  target += beta_lpdf(R2D2_R2 | R2D2_mean_R2 * R2D2_prec_R2,
+            (1 - R2D2_mean_R2) * R2D2_prec_R2); // R^2
+  target += dirichlet_lpdf(R2D2_phi | R2D2_alpha); //phi
+
+  target += normal_lpdf(Intercept | 0, 10);  // Intercept
+  target += std_normal_lpdf(zb); //zb: overall effects
+
+  for(k in 1:K){
+    for(d in 1: Dg){
+      target += std_normal_lpdf(z[k,d,]); // z
+    }
+  }
+
+  target += student_t_lpdf(sigma | 3, 0, sd(Yc));  //
+
+}
+generated quantities {
+  //---actual population-level intercept
+  real b_Intercept = Ymean+Intercept - dot_product(means_X, b);
+
+  //---y_tilde quantities of interest
+
+  vector[N] log_lik;
+  real y_tilde[N];
+  vector[N] mu_tilde = rep_vector(0.0, N)+Ymean+Intercept +Xc*b;
+  vector<lower=0>[(D-1)+K+(Dg-1)*K] lambdas;
+
+  //---y_tilde calc
+
+  for (n in 1:N) {
+    for(k in 1:K){
+      mu_tilde[n]+=dot_product(r[k,,J[n,k]], Z[k,,n]) ;
+      }
+    log_lik[n] =normal_lpdf( Y[n] | mu_tilde[n], sigma);
+    y_tilde[n]=normal_rng(mu_tilde[n], sigma);
+  }
+
+  //--- lambdas
+
+  //overall variances
+  lambdas[1:Dc]= sigma^2*R2D2_phi[1:Dc]./ var_X *R2D2_tau2 ;
+  //varying int variances
+  lambdas[(Dc+1):(Dc+K)]= sigma^2*R2D2_phi[(Dc+1):(Dc+K)]
+                            *R2D2_tau2;
+
+  for(k in 1:K){
+      // group level variances
+      // (k-1)(Dg-1) indexes the start of the kth batch of scales
+      lambdas[(Dc+K+(k-1)*(Dg-1)+1):(Dc+K+(k-1)*(Dg-1)+Dg-1)]=
+      sigma^2*R2D2_phi[(Dc+K+(k-1)*
+                    (Dg-1)+1):(Dc+K+(k-1)*(Dg-1)+Dg-1)]
+                    ./ var_X*R2D2_tau2;
+  }
+
+}
+\end{verbatim}
+
+\end{small}
+
+
+\subsection{Gibbs sampling}
+
+	To illustrate a Gibbs sampling approach to obtain posterior draws we consider, without loss of generality,  $K=1$ grouping factors and consider that the first $q$ terms (i.e covariates $x_1,...,x_q$ with $q\leq p$) are all varying over $L=l$ levels, where we will consider that $\sigma_{xi}=1 \forall i=1,...,p$.  Therefore $\phi$ is a simplex of dimension $r=p+1+q$ (due to the inclusion of the varying intercept term). We consider a symmetric Dirichlet distribution for $\phi$ with concentration vector $\alpha = (a_\pi,..., a_\pi)'$. Our procedure can be generalized for arbitrary concentration vectors $\alpha$. For ease of notation and to be able to develop a blocked Gibbs sampling we will write model \eqref{r2d2m2model} in matrix form. This will drastically improve performance over moving one regression term at a time .
+
+	Denote by $b=(b_1,...,b_p)'$, $u_j=(u_{0j},u_{1j},...,u_{qj} )'$ the varying coefficients in level $j=1,...,l$ and by $u=(u_1,...,u_l)' \in \mathbb{R}^{l(q+1)}$ the vector containing all varying coefficients. Notice that we have suppressed the notation that indicates the group since we only have one grouping factor $K$. Let $y=(y_1,...,y_N)'$ denote a vector containing the $N$ observations $y_i, i=1,...,N$, $X$ denote the standardized design matrix of dimension $N \times p$ and $Z$ denote the varying effects matrix   \citep[see][for details on how to construct $Z$]{lme4}. Since we only have one grouping factor, $Z$ is a block matrix, where each block contains the observations that vary in each level. In the following, we denote the linear predictor as $\mu= Xb + Zu$.
+
+    Let $\Sigma_b=\sigma^2 \Gamma_b$ denote the covariance matrix of the vector of overall coefficients $b$ where $\Gamma_b=\text{diag}\left\lbrace \phi_1  \tau^2 ,..., \phi_p  \tau^2    \right\rbrace$. Let  $\Sigma_u \in \mathbb{R}^{l (q+1)\times l (q+1)}$ denote the block diagonal covariance matrix of $u$ which is given by  $\Sigma_u= \sigma^2 \Gamma_u $ where $\Gamma_u= \text{diag} \left \lbrace \gamma_{1},..., \gamma_{l} \right \rbrace$, and $\gamma_j$ is the covariance matrix associated to $u_j$ for $j=1,...,l$. In our context, $\gamma_j= \text{diag} \left\lbrace \phi_{p+1}\tau^2, \phi_{p+2} \tau^2, ..., \phi_{p+1+q} \tau^2  \right\rbrace $ for all $j=1,...,l$. Finally,  let $I_N$ represent the identity matrix of order $N$.  With the notation that has been introduced and using the representation \eqref{eq:r2d2altparam1}, we can write the R2D2M2 model \eqref{r2d2m2model} in matrix form as
+    %
+    \begin{equation}
+    \label{eq:r2d2altparam2}
+    \begin{aligned}
+		y &\,|\, \mu, \sigma^2 \sim \normal(\mu, \sigma^2 I_N), \\
+		b&|\sigma, \tau^2, \phi \sim \normal \left(0, \Sigma_b \right), \ \
+		u|\sigma, \tau^2, \phi \sim \normal \left(0,  \Sigma_u \right) \\
+		\phi & \sim \dirichlet(\alpha) \\
+	    \tau^2 | \xi &\sim \gammadist (a_1, \xi), \ \
+		\xi \sim \gammadist(a_2, 1), \ \  \sigma \sim p(\sigma).
+	\end{aligned}
+    \end{equation}
+
+In the following we denote by $Z \sim \gigdist \left(  \chi, \rho, \nu  \right) $, the Generalized Inverse Gaussian distribution  \citep{RobertGIG} with parameters $\chi>0, \rho>0$ and $\nu \in \mathbb{R}$  if
+	\[ p(z) \propto  z^{\nu-1} \exp\left\lbrace   -\left(  \rho z+ \chi/z  \right)/2    \right\rbrace. \]
+
+	We denote by $\invgammadist(c,d)$ the Inverse Gamma distribution with shape $c$ and scale $d$ and consider that a priori  $\sigma^2 \sim \invgammadist(c,d)$. Consider representation \eqref{eq:r2d2altparam2} of the R2D2M2 prior, then the Gibbs sampling procedure is the following:
+
+	\begin{enumerate}
+		\item Set initial values for $b, u, \sigma, \phi, \tau^2, \xi$.
+		\item Sample $b | u, \phi, \tau, \sigma, y  \sim \normal \left(  \bar{b}  , S_{b} \right)$, where
+
+		\begin{align*}
+		    \bar{b}&= \left(X'X+ \Gamma_b^{-1} \right)^{-1} X'(y-Zu) \\
+		    S_b&= \sigma^2 \left(X'X+ \Gamma_b^{-1} \right)^{-1}. \\
+ 		\end{align*}
+		\item Sample $u | b, \phi, \tau, \sigma, y \sim \normal \left(  \bar{u}  , S_{u} \right)$, where
+		\begin{align*}
+		    \bar{u}&= \left(Z'Z+ \Gamma_u^{-1} \right)^{-1} Z'(y-Xb) \\
+		    S_u&= \sigma^2 \left(Z'Z+ \Gamma_u^{-1} \right)^{-1}. \\
+ 		\end{align*}
+
+		\item Sample $\sigma^2 |  b, u, \phi, \tau^2  \sim \invgammadist \left(  \dot{c}, \dot{d}   \right)$, where
+
+		\begin{align*}
+		  \dot{c}&=c+\frac{1}{2}\left( N+p+l(q+1) \right) \\
+		  \dot{d}&=  d+   \frac{1}{2} \left(  ||  y-Xb-Zu||_2^2+  b' \Gamma_{b}^{-1} b + u' \Gamma_{u}^{-1} u \right).
+		\end{align*}
+
+
+
+		\item Sample  $\tau^2|  b, u, \sigma, \xi \sim \gigdist  \left( \chi, \rho, \nu \right)$, where
+
+		\begin{align*}
+		\chi=  \frac{1}{\sigma^2} \left(   b'   T_b^{-1}b  +  u' T_u^{-1} u    \right), \ \
+		\rho= 2\xi , \ \ \nu= a_1- 1/2 \left(p+ l(q+1) \right),  \\
+		\end{align*}
+
+        where $T_b$ and $T_u$ are such that $\Gamma_b=T_b \tau^2 $ and $\Gamma_u=T_u \tau^2 $ respectively. Sampling from the Generalized Inverse Gaussian is not straightforward, but the reader can refer to \cite{GenInvGaussian} for efficient methods.\\
+
+		\item Sample $\xi | \tau^2   \sim \gammadist \left( a_1+a_2 , 1+\tau^2 \right) $.\\
+		\item Sample $\phi \,|\, b, u, \sigma, \xi $. \\
+
+		To sample $\phi \,|\, b, u, \sigma $ we make use of the following proposition
+		\begin{prop}
+		    The joint posterior of $\phi \,|\,  b, u, \sigma, \xi  $ has the same distribution as $\left(T_1/T,..., T_r/T \right)$ where $T_j$ are independently drawn according to
+		\begin{align*}
+		   T_j  &\sim \gigdist \left(  \frac{b_j^2}{2\sigma^2} , 2\xi, a_\pi-1/2\right) \ \  j=1,...,p \\
+		  T_j  &\sim \gigdist \left( \frac{  \sum_{j=1}^l u_{ij}^2   }{2\sigma^2}  , 2\xi, a_\pi - l/2 \right)  \ \   j=p+1,..., q+p+1,
+		\end{align*}
+		where $r= p+1+q,$ and $T= \sum_{i=1}^r T_i$.
+		\end{prop}
+
+		The main idea is to integrate out $\tau^2$ and after doing so set $\phi_i= T_i/T$. To see this works, consider the joint posterior of $\phi  | b, u, \sigma, \xi$ that results from integrating $\tau^2$,
+		\begin{small}
+		\begin{equation}
+		    	\begin{aligned}
+			\label{eq:gibbs1}
+				p(\phi | b, u, \sigma,\xi  ) &\propto \prod_{i=1}^p \phi_i^{a_\pi-3/2} \prod_{i=p+1}^r \phi_i^{a_\pi-l/2-1} \\
+				&\times \int_{0}^\infty (\tau^2)^{\nu-1} \exp \left\lbrace -\frac{1}{2} \left[  \rho \tau^2 +\chi/\tau^2    \right]  \right\rbrace d\tau^2,
+			\end{aligned}
+		\end{equation}
+		\end{small}
+
+		where $ \nu= a_1-1/2(p+l(q+1)), \rho= 2\xi, \chi= \frac{1}{\sigma^2} \left( \sum\limits_{i=1}^p \frac{b_i^2}{\phi_i}+ \sum\limits_{i=p+1}^r \sum\limits_{j=1}^l \frac{u_{ij}^2}{\phi_i} \right)$.
+
+
+		Now consider the following proposition \citep[see][Annotation (36) for the proof]{SimplexKruijer}.
+
+		\begin{prop}
+			Suppose $T_1,..., T_r$ are independent random variables, with $T_i$ having a density $f_i$ on $(0,\infty)$. Let $\phi_i = T_i / T$ with $T= \sum_i T_i$, then the joint density $f$ of $(\phi_1,..., \phi_{r-1})$ supported on the simplex $\mathcal{S}^{r-1}$ has the form
+		%-----------
+		\begin{align}
+			\label{eq:imp}
+			p(\phi_1,...,\phi_{r-1})= \int_{0}^\infty t^{r-1} \prod_{i=1}^{n} f_i \left( \phi_i t \right) dt,
+		\end{align}
+		%-----------
+		where $\phi_r= 1- \sum_{i=1}^{r-1} \phi_j$.
+		\end{prop}
+
+		Setting $f_i(x)$ as
+
+		\begin{align*}
+			f_i(x) &\propto x^{-\delta_1} \exp\left \lbrace  \frac{  b_i^2}{2\sigma^2} \frac{1}{x} \right \rbrace  \exp\left\lbrace  -\xi x\right \rbrace, \ \ i=1,...,p \\
+			f_i(x) &\propto x^{-\delta_2} \exp \left \lbrace -\frac{ \sum_{j=1}^l u_{ij}^2}{ 2\sigma^2} \frac{1}{x} \right \rbrace \exp\left\lbrace  -\xi x\right \rbrace, \ \ i=p+1,...,p+q+1, \\
+		\end{align*}
+
+
+	    substituting $f_i(\phi_i \tau^2)$ into (\ref{eq:imp}) and simplifying we arrive to
+
+		\begin{small}
+	    \begin{equation}
+	        \begin{aligned}
+	        \label{eq:gibbs2}
+			p(\phi_1,...,\phi_{r-1}) &=  \prod_{j=1}^p \phi_j^{ -\delta_1} \prod_{j=p+1}^{p+q+1} \phi_j^{ -\delta_2} \int_{0}^\infty  (\tau^2)^{r- \delta_1 p -\delta_2 (q+1 )-1 } \\
+			&\times
+			\exp \left\{   -\frac{1}{2}  \left[ \frac{1}{\sigma^2} \left(  \sum_{i=1}^p b_i^2/\phi_i  + \sum_{i=p+1}^{r} \sum_{j=1}^l u_{ij}^2/\phi_i  \right)/\tau^2 + 2\xi \tau^2 \right]  \right\} d\tau^2. \\
+		\end{aligned}
+	    \end{equation}
+		\end{small}
+
+		Comparing equations \eqref{eq:gibbs1} and \eqref{eq:gibbs2} we have $\delta_1= 3/2-a_\pi , \delta_2= (l+2)/2-a_\pi$. The proof is completed by noticing that $f_j$ are Generalized Inverse Gaussian distributions. \\
+
+		\item[h)] Repeat until convergence
+
+
+	\end{enumerate}
+
+
+\newpage

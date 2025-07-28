@@ -1,0 +1,67 @@
+\begin{tikzpicture}
+    % x node set with absolute coordinates
+    \node[state] (r2) at (0,0) {$R^2$};
+
+    \node[state] (t2) at (2,0) {$\tau^2$};
+
+    %\node[state] (phi1) at (4,3)  {$\phi_1$};
+    %\node[vmissing] (dots1) at (4,2) {};
+    \node[state] (phip) at (4,1) {$\phi_i$};
+
+
+    \node[state] (phip1) at (4,-1)  {$\phi_{ig}$};
+    %\node[vmissing] (dots3) at (4,-2) {};
+    %\node[state] (phipq) at (4,-3) {$\phi_{p+q}$};
+
+    %\node[state] (lambda1) at (6,3)  {$\lambda_1$};
+    %\node[vmissing] (dots5) at (6,2) {};
+    \node[state] (lambdap) at (6,1) {$\lambda_i^2$};
+
+
+    \node[state] (lambdap1) at (6,-1) {$\lambda_{ig}^2$};
+    %\node[vmissing] (dots7) at (6,-2) {};
+    %\node[state] (lambdapq) at (6,-3) {$\lambda_{p+q}$};
+
+
+
+    %\node[state] (beta1) at (8,3)  {$b_1$};
+    %\node[vmissing] (dots8) at (8,2) {};
+    \node[state] (betap) at (8,1) {$b_i$};
+
+    \node[state] (u11) at (8,-1)  {$u_{ig_1}$};
+    \node[hmissing] (hdots1) at (9,-1) {};
+    %\node[vmissing] (dots8) at (8,-2) {};
+    \node[state] (ul1) at (10,-1)  {$u_{ig_l}$};
+    %\node[vmissing] (dots9) at (10,-2) {};
+    %\node[state] (u1q) at (8,-3) {$u_{1q}$};
+    %\node[state] (ulq) at (10,-3) {$u_{lq}$};
+    %\node[hmissing] (hdots2) at (9,-3) {};
+    % Directed edge
+    \path (r2) edge (t2);
+    %\path (t2) edge  (phi1);
+    \path (t2) edge  (phip);
+    \path (t2) edge  (phip1);
+    %\path (t2) edge  (phipq);
+
+
+    %\path (phi1) edge  (lambda1) ;
+    \path (phip) edge (lambdap) ;
+    \path (phip1) edge (lambdap1) ;
+    %\path (phipq) edge (lambdapq) ;
+
+    %\path (lambda1) edge  (beta1);
+    \path (lambdap) edge (betap);
+
+    \path (lambdap1) edge (u11);
+    %\path (lambdapq) edge (u1q);
+
+
+    % \node[draw=black, thick,fit=(phi1)(phipq), inner sep=0.2cm] (blackbox) {};
+
+
+    %\node[draw=blue,dotted, thick,fit=(beta1)(beta1), inner sep=0.2cm] (bluebox) {};
+
+
+    \node[draw=red,dotted,thick,fit=(u11)(ul1), inner sep=0.2cm] (redbox) {};
+
+\end{tikzpicture}

@@ -1,0 +1,192 @@
+\documentclass[ba,preprint]{imsart}% use this for supplement article
+%\documentclass[ejs]{imsart}
+\pubyear{2023}
+\volume{TBA}
+\issue{TBA}
+
+\firstpage{1}
+\lastpage{1}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts,epsfig,breakurl}
+\usepackage{listings}
+\usepackage{lstbayes}
+\usepackage{MnSymbol}
+
+
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{verbatim}
+\usepackage{threeparttable}
+\usepackage{natbib}
+\usepackage[colorlinks,citecolor=blue,urlcolor=blue,filecolor=blue,backref=page]{hyperref}
+
+\graphicspath{ {./images/} }
+%%-------New commands
+\newcommand{\rsq}{R^2}
+\newcommand{\cov}{\text{cov}}
+\newcommand{\diag}{\text{diag}}
+\newcommand{\var}{\text{var}}
+\newcommand{\mbe}{\mathbb{E}}
+
+%-- Distributions
+\newcommand{\normal}{\text{Normal}}
+\newcommand{\dirichlet}{\text{Dirichlet}}
+\newcommand{\multinormal}{\text{Multi_normal}}
+\newcommand{\betadist}{\text{Beta}}
+\newcommand{\betaprime}{\text{BetaPrime}}
+\newcommand{\gammadist}{\text{Gamma}}
+\newcommand{\expdist}{\text{Exponential}}
+\newcommand{\gigdist}{\text{GenInvGaussian}}
+\newcommand{\invgammadist}{\text{InvGamma}}
+
+
+%---- metrics
+
+\newcommand{\rmse}{\text{RMSE}}
+\newcommand{\effr}{r_{\text{eff} }}
+\newcommand{\meff}{m_{\text{eff} }}
+\newcommand{\pprsq }{ R^2_{\text{pp}}}
+\newcommand{\elpd}{\text{elpd}}
+\newcommand{\lpdhat}{\widehat{\text{elpd}}}
+\newcommand{\SSTpp}{\text{SS}_\text{tot}}
+\newcommand{\SSrespp}{\text{SS}_{\text{res}}}
+\newcommand{\myosfresults}{\url{https://osf.io/wgsth/}}
+
+
+
+%---------- Theorems
+\newtheorem{prop}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+%-------- tikz
+
+\usetikzlibrary{shapes,fit} %use shapes library if you need ellipse
+\usetikzlibrary{bayesnet}
+% Tikz settings optimized for causal graphs.
+% Just copy-paste this part
+\usetikzlibrary{shapes,decorations,arrows,calc,arrows.meta,fit,positioning}
+\tikzset{
+    -Latex,auto,node distance =1 cm and 1 cm,semithick,
+    state/.style ={circle, draw, minimum width = 1.0 cm},
+    point/.style = {circle, draw, inner sep=0.04cm,fill,node contents={}},
+    vmissing/.style={
+    draw=none,
+    scale=1,
+    text height=0.111cm,
+    execute at begin node=\color{black}$\vdots$
+    },
+    hmissing/.style={
+    draw=none,
+    scale=1,
+    text height=0.111cm,
+    execute at begin node=\color{black}$...$
+    },
+    bidirected/.style={Latex-Latex,dashed},
+    el/.style = {inner sep=2pt, align=left, sloped}
+}
+
+%---------------------end new commands
+
+
+\begin{document}
+
+\begin{frontmatter}
+%\title{\support{}}
+
+\title{Intuitive Joint Priors for Bayesian Linear Multilevel Models: The R2D2M2 prior}
+\runtitle{The R2D2M2 prior}
+
+\date{14 August, 2022}
+
+\begin{aug}
+\author{\fnms{Javier Enrique} \snm{Aguilar}\thanksref{addr1}\ead[label=e1]{javier.aguilar-romero@simtech.uni-stuttgart.de}%
+\ead[label=u1,url]{https://jear2412.github.io}},
+\and
+\author{\fnms{Paul-Christian}\snm{ Bürkner}\thanksref{addr2}\ead[label=e2]{paul.buerkner@gmail.com}%
+\ead[label=u2,url]{https://paul-buerkner.github.io}}
+
+\runauthor{J. Aguilar and P. Bürkner}
+
+\address[addr1]{Cluster of Excellence SimTech, University of Stuttgart \\
+    \printead{e1} \\
+    \printead{u1}
+}
+
+\address[addr2]{Cluster of Excellence SimTech, University of Stuttgart \\
+    \printead{e2} \\
+    \printead{u2}
+}
+
+%\thankstext{t1}{Some comment}
+%\thankstext{t2}{First supporter of the project}
+%\thankstext{t3}{Second supporter of the project}
+
+\end{aug}
+
+\begin{abstract}
+		\noindent
+
+ 	   The training of high-dimensional regression models on comparably sparse data is an important yet complicated topic, especially when there are many more model parameters than observations in the data. From a Bayesian perspective, inference in such cases can be achieved with the help of shrinkage prior distributions, at least for generalized linear models. However, real-world data usually possess multilevel structures, such as repeated measurements or natural groupings of individuals, which existing shrinkage priors are not built to deal with.
+
+        We generalize and extend one of these priors, the R2D2 prior by Zhang et al. (2020), to linear multilevel models leading to what we call the R2D2M2 prior. The proposed prior enables both local and global shrinkage of the model parameters. It comes with interpretable hyperparameters, which we show to be intrinsically related to vital properties of the prior, such as rates of concentration around the origin, tail behavior, and amount of shrinkage the prior exerts.
+
+        We offer guidelines on how to select the prior's hyperparameters by deriving shrinkage factors and measuring the effective number of non-zero model coefficients. Hence, the user can readily evaluate and interpret the amount of shrinkage implied by a specific choice of hyperparameters.
+
+        Finally, we perform extensive experiments on simulated and real data, showing that our inference procedure for the prior is well calibrated, has desirable global and local regularization properties and enables the reliable and interpretable estimation of much more complex Bayesian multilevel models than was previously possible.
+	\end{abstract}
+
+
+%% ** Keywords **
+\begin{keyword}%[class=MSC]
+\kwd{Bayesian inference, multilevel models, prior specification, shrinkage priors, regularization}
+%\kwd[]{}
+\end{keyword}
+
+%\tableofcontents
+
+\end{frontmatter}
+
+\input{S1_Introduction}
+%
+\input{S2_TheR2D2M2prior}
+%
+\input{S3_Properties}
+%
+\input{S4_Examples}
+%
+\input{S5_Discussion}
+%
+% ** Acknowledgements **
+\begin{acks}[Acknowledgments]
+Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy EXC 2075-390740016 and DFG Project 500663361. We acknowledge the support by the Stuttgart Center for Simulation Science (SimTech).
+\end{acks}
+
+%% ** The bibliograhy **
+
+\bibliographystyle{ba}
+\bibliography{./bib/refs}
+
+%% ** The appendix
+\appendix
+\include{app1-proofs}
+\include{app2-Gibbs}
+\include{app3-Examples}
+
+%--bib
+
+%
+
+
+
+\end{document}
