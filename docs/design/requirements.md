@@ -1,16 +1,35 @@
-# Design Doc: PyMC Model Builder AgentBot
+# Design Doc: PyMC Model Builder AgentBot with R2D2 Priors
 
 ## Overview
 
-The PyMC Model Builder AgentBot is a command-line LLM agent that:
+The PyMC Model Builder AgentBot is a command-line LLM agent that automatically generates R2D2-based probabilistic models for laboratory data. It:
 - Accepts a freeform natural language description of a biological experiment.
 - Socratically asks clarifying questions to elicit variables and experimental structure.
-- Proposes a PyMC model (code) as a PEP 723 script, with best-guess priors and likelihoods (without prompting the user for these).
+- **Automatically selects the appropriate R2D2 variant** (Shrinkage, GLM, or M2) based on experiment design.
+- Proposes a PyMC model (code) as a PEP 723 script using **R2D2 priors as the default archetype**.
+- **Calculates variance components** for multiple grouping factors using R2D2M2 framework.
 - Suggests alternative distributions where appropriate.
 - Outputs a sample pandas DataFrame for the experiment.
 - Outputs a model graph and posterior plots (if possible).
 - Ensures generated code is syntactically valid and can be compiled by PyMC.
 - Iteratively corrects code if errors are detected.
+
+## R2D2 Model Selection Strategy
+
+The agent automatically selects the appropriate R2D2 variant based on experiment characteristics:
+
+### R2D2 Shrinkage (Basic)
+**Use when:** Simple linear regression with multiple predictors, no grouping factors
+**Example:** Gene expression ~ drug dose + age + weight (no repeated measures)
+
+### R2D2 GLM
+**Use when:** Non-Gaussian outcomes (Poisson, Binomial, etc.) with or without simple grouping
+**Example:** Count data, binary outcomes, rate data
+
+### R2D2M2 (Multilevel/Laboratory Default)
+**Use when:** Multiple grouping factors, repeated measures, complex laboratory designs
+**Example:** Laboratory experiments with mouse ID + microRNA ID + stress condition
+**This is the DEFAULT for most laboratory data**
 
 ---
 
@@ -66,6 +85,13 @@ data = pd.DataFrame({
 ```
 
 **Agent:**
+> I've identified this as a multilevel design with multiple grouping factors. I'll use the **R2D2M2 framework** to automatically allocate variance across predictors and grouping factors.
+>
+> **Component calculation:**
+> - Predictors: age (continuous)
+> - Grouping factors: mouse ID, drug, sex
+> - Total components = 1 (age) + 3 (grouping factors) = 4 components
+>
 > Here is the proposed PyMC model as a PEP 723 script:
 
 ```python
@@ -75,77 +101,174 @@ data = pd.DataFrame({
 #   "pymc",
 #   "pandas",
 #   "numpy",
+#   "pytensor",
 # ]
 # ///
 
 import pymc as pm
 import pandas as pd
 import numpy as np
+import pytensor.tensor as pt
 
 data = pd.read_csv('experiment_data.csv')
 
+# Create indices for grouping factors
+mouse_ids = pd.Categorical(data['mouse_id']).codes
+drug_ids = pd.Categorical(data['drug']).codes
+sex_ids = pd.Categorical(data['sex']).codes
+
 coords = {
-    'mouse': data['mouse_id'].unique(),
-    'timepoint': data['timepoint'].unique(),
-    'drug': data['drug'].unique(),
-    'sex': data['sex'].unique(),
-    'replicate': np.arange(1, 5),  # 4 replicates per mouse per timepoint
+    'obs': range(len(data)),
+    'mice': range(len(data['mouse_id'].unique())),
+    'drugs': data['drug'].unique(),
+    'sexes': data['sex'].unique(),
+    'components': ['age', 'mouse_intercepts', 'drug_intercepts', 'sex_intercepts']
 }
 
-# ---
-# Corrected R2D2M2 prior for all regression coefficients and variance decomposition
-# Pattern follows protein_estimation.py and https://ericmjl.github.io/blog/2025/4/3/bayesian-superiority-estimation-with-r2d2-priors-a-practical-guide-for-protein-screening/
-# IMPORTANT: W is partitioned ONCE among all effects using a single Dirichlet. Each effect (vector or matrix) gets its own unique variance component from this partition. Do NOT further decompose or multiply by W for subcomponents.
-
 with pm.Model(coords=coords) as model:
-    # 1. Residual variance (unexplained)
-    sigma_squared = pm.HalfNormal("sigma_squared", sigma=1)
-    residual_sd = pm.Deterministic("residual_sd", pm.math.sqrt(sigma_squared))
-
-    # 2. R2 prior and induced total signal variance W
+    # R2D2M2 Framework
+    # 1. R² prior
     r_squared = pm.Beta("r_squared", alpha=1, beta=1)
-    W = pm.Deterministic("W", sigma_squared * r_squared / (1 - r_squared))
 
-    # 3. Dirichlet split of W among all effects (single partition)
-    n_components = 6  # e.g., genotype, treatment, interaction, time, mouse, replicate
-    props = pm.Dirichlet("props", a=np.ones(n_components), dims="component")
-    comp_vars = props * W
-    comp_sds = pm.Deterministic("comp_sds", pm.math.sqrt(comp_vars))
+    # 2. Total explained variance τ²
+    tau_squared = pm.Deterministic("tau_squared", r_squared / (1 - r_squared))
 
-    # 4. Effects (assign each effect its own unique variance component)
-    genotype_effect = pm.Normal("genotype_effect", mu=0, sigma=comp_sds[0], dims="genotype")
-    treatment_effect = pm.Normal("treatment_effect", mu=0, sigma=comp_sds[1], dims="treatment")
-    interaction = pm.Normal("interaction", mu=0, sigma=comp_sds[2], dims=("genotype", "treatment"))
-    # No further Dirichlet or scaling for time, mouse, or replicate effects:
-    time_effect = pm.Normal("time_effect", mu=0, sigma=comp_sds[3], dims="timepoint")
-    mouse_offset = pm.Normal("mouse_offset", mu=0, sigma=comp_sds[4], dims="mouse")
-    replicate_offset = pm.Normal("replicate_offset", mu=0, sigma=comp_sds[5], dims="replicate")
+    # 3. Variance allocation across components
+    n_components = 4  # age + mouse + drug + sex
+    phi = pm.Dirichlet("phi", a=np.full(n_components, 0.5), dims="components")
 
-    # 5. Global mean
-    mu = pm.Normal("mu", mu=0, sigma=10)
+    # 4. Residual variance
+    sigma = pm.HalfStudentT("sigma", nu=3, sigma=np.std(data['blood_pressure']))
+    sigma_squared = pm.Deterministic("sigma_squared", sigma**2)
 
-    # 6. Linear predictor
-    mu_obs = (
-        mu
-        + genotype_effect[genotype_idx]
-        + treatment_effect[treatment_idx]
-        + interaction[genotype_idx, treatment_idx]
-        + time_effect[time_idx]
-        + mouse_offset[mouse_idx]
-        + replicate_offset[replicate_idx]
-    )
+    # 5. Population-level effect (age)
+    age_scale = pm.Deterministic("age_scale",
+                                pt.sqrt(sigma_squared * phi[0] * tau_squared))
+    age_effect = pm.Normal("age_effect", mu=0, sigma=age_scale)
 
-    # 7. Likelihood uses only the residual_sd
-    bp = pm.Normal('blood_pressure', mu=mu_obs, sigma=residual_sd, observed=data['blood_pressure'].values)
+    # 6. Group-specific intercepts (each gets own variance component)
+    # Mouse-specific intercepts
+    mouse_scale = pm.Deterministic("mouse_scale",
+                                  pt.sqrt(sigma_squared * phi[1] * tau_squared))
+    mouse_intercepts = pm.Normal("mouse_intercepts", mu=0, sigma=mouse_scale, dims="mice")
+
+    # Drug-specific intercepts
+    drug_scale = pm.Deterministic("drug_scale",
+                                 pt.sqrt(sigma_squared * phi[2] * tau_squared))
+    drug_intercepts = pm.Normal("drug_intercepts", mu=0, sigma=drug_scale, dims="drugs")
+
+    # Sex-specific intercepts
+    sex_scale = pm.Deterministic("sex_scale",
+                                pt.sqrt(sigma_squared * phi[3] * tau_squared))
+    sex_intercepts = pm.Normal("sex_intercepts", mu=0, sigma=sex_scale, dims="sexes")
+
+    # 7. Linear predictor
+    eta = (age_effect * data['age'].values +
+           mouse_intercepts[mouse_ids] +
+           drug_intercepts[drug_ids] +
+           sex_intercepts[sex_ids])
+
+    # 8. Likelihood
+    likelihood = pm.Normal("blood_pressure", mu=eta, sigma=sigma,
+                          observed=data['blood_pressure'], dims="obs")
 
 # ---
 
-*Note: By default, the model uses the `dims` argument (not `shape`) for all multivariate priors, leveraging the coordinates defined in `coords`. The replicate effect is modeled as a random effect nested within each mouse, capturing within-mouse measurement variability.*
+*Note: This R2D2M2 model automatically determines which factors contribute most to explained variance through the φ allocation. For example, if φ = [0.1, 0.6, 0.2, 0.1], then mouse differences account for 60% of total explained variance.*
 
 **Agent:**
 > I have written the following files to disk:
 > - `biomodel.py` (PyMC model with PEP 723 metadata)
 > - `experiment_data.csv` (sample data structure for your experiment)
+
+---
+
+## Laboratory Data Archetype: Multi-Factor R2D2M2
+
+For complex laboratory experiments with multiple crossed grouping factors, the agent should automatically generate R2D2M2 models following this archetype:
+
+### Example: Multi-omics Laboratory Experiment
+
+**Scenario:** Gene expression study with multiple experimental factors
+- **Response:** Gene expression level (continuous)
+- **Predictors:** Treatment dose (continuous), Age (continuous)
+- **Grouping factors:** Mouse ID, MicroRNA ID, Stress condition
+
+**Component calculation:**
+```python
+n_components = n_predictors + n_grouping_factors
+n_components = 2 + 3 = 5 components
+```
+
+**Generated model structure:**
+```python
+def r2d2m2_laboratory_archetype(X, y, mouse_ids, microRNA_ids, stress_conditions):
+    n, p = X.shape  # p predictors
+    n_grouping_factors = 3  # mouse, microRNA, stress
+    n_components = p + n_grouping_factors
+
+    coords = {
+        'predictors': [f'x_{i}' for i in range(p)],
+        'obs': range(n),
+        'components': ([f'population_{i}' for i in range(p)] +
+                      ['mouse_intercepts', 'microRNA_intercepts', 'stress_intercepts']),
+        'mice': range(len(np.unique(mouse_ids))),
+        'microRNAs': range(len(np.unique(microRNA_ids))),
+        'stress_conditions': range(len(np.unique(stress_conditions)))
+    }
+
+    with pm.Model(coords=coords) as model:
+        # R2D2M2 framework
+        r_squared = pm.Beta("r_squared", alpha=1, beta=1)
+        tau_squared = pm.Deterministic("tau_squared", r_squared / (1 - r_squared))
+        phi = pm.Dirichlet("phi", a=np.full(n_components, 0.5), dims="components")
+
+        sigma = pm.HalfStudentT("sigma", nu=3, sigma=np.std(y))
+        sigma_squared = pm.Deterministic("sigma_squared", sigma**2)
+
+        # Population-level effects (first p components)
+        population_scale = pm.Deterministic("population_scale",
+                                           pt.sqrt(sigma_squared * phi[:p] * tau_squared),
+                                           dims="predictors")
+        beta = pm.Normal("beta", mu=0, sigma=population_scale, dims="predictors")
+
+        # Group-specific intercepts (remaining components)
+        mouse_scale = pm.Deterministic("mouse_scale",
+                                      pt.sqrt(sigma_squared * phi[p] * tau_squared))
+        mouse_intercepts = pm.Normal("mouse_intercepts", mu=0, sigma=mouse_scale, dims="mice")
+
+        microRNA_scale = pm.Deterministic("microRNA_scale",
+                                         pt.sqrt(sigma_squared * phi[p+1] * tau_squared))
+        microRNA_intercepts = pm.Normal("microRNA_intercepts", mu=0, sigma=microRNA_scale, dims="microRNAs")
+
+        stress_scale = pm.Deterministic("stress_scale",
+                                       pt.sqrt(sigma_squared * phi[p+2] * tau_squared))
+        stress_intercepts = pm.Normal("stress_intercepts", mu=0, sigma=stress_scale, dims="stress_conditions")
+
+        # Linear predictor
+        eta = (pm.math.dot(X, beta) +
+               mouse_intercepts[mouse_ids] +
+               microRNA_intercepts[microRNA_ids] +
+               stress_intercepts[stress_conditions])
+
+        # Likelihood
+        likelihood = pm.Normal("y", mu=eta, sigma=sigma, observed=y, dims="obs")
+
+    return model
+```
+
+**Key benefits of this archetype:**
+1. **Automatic factor importance**: Model determines which factors contribute most to variance
+2. **Interpretable results**: φ components show percentage of variance explained by each factor
+3. **Hierarchical pooling**: Groups with little data borrow strength from other groups
+4. **Scalable**: Works with any number of grouping factors
+
+**Example interpretation:** If φ = [0.15, 0.25, 0.35, 0.15, 0.10], then:
+- Predictor 1 accounts for 15% of explained variance
+- Predictor 2 accounts for 25% of explained variance
+- Mouse differences account for 35% of explained variance
+- MicroRNA differences account for 15% of explained variance
+- Stress condition differences account for 10% of explained variance
 
 ---
 
@@ -552,11 +675,41 @@ def ask_clarifying_questions(parsed_info: dict) -> list:
     """
 
 @tool
-def propose_model_structure(parsed_info: dict) -> dict:
+def select_r2d2_variant(parsed_info: dict) -> str:
     """
-    Propose a model structure (variables, effects, priors, likelihoods, and alternatives) based on the parsed experiment information.
+    Automatically select the appropriate R2D2 variant based on experiment characteristics.
+
+    Selection logic:
+    - R2D2 Shrinkage: Simple linear regression, no grouping factors
+    - R2D2 GLM: Non-Gaussian outcomes (Poisson, Binomial, etc.)
+    - R2D2M2: Multiple grouping factors, repeated measures (DEFAULT for laboratory data)
 
     :param parsed_info: Dictionary of structured experiment information.
+    :return: String indicating the selected variant ("shrinkage", "glm", or "m2").
+    """
+
+@tool
+def calculate_variance_components(parsed_info: dict, r2d2_variant: str) -> dict:
+    """
+    Calculate the number and names of variance components for R2D2 model.
+
+    For R2D2M2: n_components = n_predictors + n_grouping_factors
+    For R2D2 GLM: n_components = n_predictors + simple grouping structure
+    For R2D2 Shrinkage: n_components = n_predictors
+
+    :param parsed_info: Dictionary of structured experiment information.
+    :param r2d2_variant: Selected R2D2 variant ("shrinkage", "glm", or "m2").
+    :return: Dictionary with 'n_components', 'component_names', and 'component_types'.
+    """
+
+@tool
+def propose_model_structure(parsed_info: dict, r2d2_variant: str, variance_components: dict) -> dict:
+    """
+    Propose a model structure (variables, effects, priors, likelihoods, and alternatives) based on the parsed experiment information and selected R2D2 variant.
+
+    :param parsed_info: Dictionary of structured experiment information.
+    :param r2d2_variant: Selected R2D2 variant ("shrinkage", "glm", or "m2").
+    :param variance_components: Dictionary describing variance component structure.
     :return: A dictionary describing the model structure, including variables, effects, and suggested distributions (with alternatives where appropriate).
     """
 
