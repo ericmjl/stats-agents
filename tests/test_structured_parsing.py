@@ -62,26 +62,31 @@ class TestPyMCModelResponse:
 
     def test_pymc_model_response_creation(self):
         """Test creating a PyMCModelResponse."""
-        from stats_agents.models import PyMCModelResponse
+        from stats_agents.pymc_generator import PyMCModelResponse
 
         model_code = "import pymc as pm\n\nwith pm.Model() as model:\n    pass"
+        description = "A simple PyMC model for testing purposes"
         response = PyMCModelResponse(
             model_code=model_code,
+            description=description,
             python_version="3.12",
             dependencies=["pymc", "pandas", "numpy"],
         )
 
         assert response.model_code == model_code
+        assert response.description == description
         assert response.python_version == "3.12"
         assert response.dependencies == ["pymc", "pandas", "numpy"]
 
     def test_pymc_model_response_render_code(self):
         """Test rendering PEP 723 compliant code."""
-        from stats_agents.models import PyMCModelResponse
+        from stats_agents.pymc_generator import PyMCModelResponse
 
         model_code = "import pymc as pm\n\nwith pm.Model() as model:\n    pass"
+        description = "A simple PyMC model for testing purposes"
         response = PyMCModelResponse(
             model_code=model_code,
+            description=description,
             python_version="3.12",
             dependencies=["pymc", "pandas"],
         )
@@ -96,11 +101,13 @@ class TestPyMCModelResponse:
 
     def test_pymc_model_response_write_to_disk(self, tmp_path):
         """Test writing code to disk."""
-        from stats_agents.models import PyMCModelResponse
+        from stats_agents.pymc_generator import PyMCModelResponse
 
         model_code = "import pymc as pm\n\nwith pm.Model() as model:\n    pass"
+        description = "A simple PyMC model for testing purposes"
         response = PyMCModelResponse(
             model_code=model_code,
+            description=description,
             python_version="3.12",
             dependencies=["pymc", "pandas"],
         )
@@ -299,11 +306,13 @@ def test_end_to_end_workflow():
 
     # Assertions for model response
     assert hasattr(model_response, "model_code")
+    assert hasattr(model_response, "description")
     assert hasattr(model_response, "python_version")
     assert hasattr(model_response, "dependencies")
     assert model_response.python_version == "3.12"
     assert "pymc" in model_response.dependencies
     assert "pandas" in model_response.dependencies
+    assert len(model_response.description) > 0
 
     # 3. Generate sample data
     data_generator = ExperimentDataGenerator()

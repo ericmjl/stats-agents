@@ -14,6 +14,10 @@ class PyMCModelResponse(BaseModel):
     model_code: str = Field(
         ..., description="Complete PEP 723 compliant PyMC model code"
     )
+    description: str = Field(
+        ...,
+        description="Natural language description of what the model does and how it works",  # noqa: E501
+    )
     python_version: str = Field(
         default="3.12", description="Minimum Python version required"
     )
@@ -56,6 +60,15 @@ def pymc_generation_system():
 
     Your task is to generate PEP 723 compliant PyMC model code based on a structured experiment description.
 
+    IMPORTANT: When generating the description, use the actual experimental factors and treatment levels from the experiment.
+    Do not use generic terms like "treatment levels" or "experimental factors" - use the specific names like "PBS", "Tris HCl", "mixing speed", etc.
+    Provide concrete interpretation examples using the actual factor names from the experiment.
+
+    ## CRITICAL DESIGN PRINCIPLES:
+    1. **NO FOR-LOOPS**: Never use for-loops in model construction. Use explicit PyMC operations with proper dimensions.
+    2. **EXPLICIT DIMENSIONS**: Use PyMC's `dims` parameter extensively for all experimental factors (treatments, nuisance factors, replicates, etc.).
+    3. **VECTORIZED OPERATIONS**: Use broadcasting and vectorized operations to handle multiple experimental factors simultaneously.
+
     ## R2D2 Framework Overview
     R2D2 (R-squared Dirichlet Decomposition) is a Bayesian regularization framework for variance decomposition in probabilistic models. For laboratory experiments, use R2D2M2 (multilevel/hierarchical models).
 
@@ -65,115 +78,100 @@ def pymc_generation_system():
     3. **R² Interpretation**: Each φ component represents its proportion of total explained variance
     4. **Hierarchical Structure**: Handle nested effects (e.g., treatment within blocks)
 
-    ### R2D2M2 Implementation Pattern:
+    ### R2D2M2 Implementation Pattern (NO FOR-LOOPS):
     ```python
     import pymc as pm
     import numpy as np
     import pytensor.tensor as pt
 
     with pm.Model(coords=coords) as model:
-        # 1. Intercept (not regularized)
-        b0 = pm.Normal("b0", mu=np.mean(y), sigma=np.std(y))
+        # 1. Measurement precision (unexplained variance)
+        sigma = pm.HalfNormal("sigma", sigma=1.0)
 
-        # 2. R² prior with mean-precision parameterization
+        # 2. Model fit quality (proportion of variation explained by experimental factors)
         r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
 
-        # 3. Signal factor W (total standardized explained variance τ²)
-        W = pm.Deterministic("W", r_squared / (1 - r_squared))  # W = τ²
+        # 3. Total experimental effect strength (signal-to-noise ratio)
+        model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
 
-        # 4. Signal strength allocation across all effect types
-        # Components: population effects + group-specific effects
-        n_components = n_predictors + n_grouping_factors
-        phi = pm.Dirichlet("phi", a=np.full(n_components, 0.5), dims="components")
+        # 4. Total explainable variance
+        W = pm.Deterministic("W", model_snr * sigma**2)
 
-        # 5. Residual variance
-        sigma = pm.HalfStudentT("sigma", nu=3, sigma=np.std(y))
-        sigma_squared = pm.Deterministic("sigma_squared", sigma**2)
+        # 5. Variance proportions across components (treatment + nuisance factors)
+        # Example: [treatment_1, treatment_2, day_effects, operator_effects]
+        phi = pm.Dirichlet("phi", a=np.array([90, 5, 3, 2]))  # Adjust based on expected importance
 
-        # 6. Population-level effects (first p components)
-        # Scale factor: σ²/σ²ₓᵢ for standardization
-        population_scale = pm.Deterministic(
-            "population_scale",
-            pt.sqrt(sigma_squared * phi[:n_predictors] * W),
-            dims="predictors"
+        # 6. Individual variance components
+        treatment_1_variance = pm.Deterministic("treatment_1_variance", phi[0] * W)
+        treatment_2_variance = pm.Deterministic("treatment_2_variance", phi[1] * W)
+        day_variance = pm.Deterministic("day_variance", phi[2] * W)
+        operator_variance = pm.Deterministic("operator_variance", phi[3] * W)
+
+        # 7. Individual treatment effects (explicit, no loops)
+        treatment_1_effect = pm.Normal("treatment_1_effect", mu=0, sigma=np.sqrt(treatment_1_variance), dims="treatment_1")
+        treatment_2_effect = pm.Normal("treatment_2_effect", mu=0, sigma=np.sqrt(treatment_2_variance), dims="treatment_2")
+
+        # 8. Nuisance factor effects
+        day_effects = pm.Normal("day_effects", mu=0, sigma=np.sqrt(day_variance), dims="day")
+        operator_effects = pm.Normal("operator_effects", mu=0, sigma=np.sqrt(operator_variance), dims="operator")
+
+        # 9. Predicted response using broadcasting (no loops)
+        # Use indicator variables or design matrices for treatments
+        predicted_response = (
+            baseline +
+            treatment_1_effect[treatment_1_idx] +
+            treatment_2_effect[treatment_2_idx] +
+            day_effects[day_idx] +
+            operator_effects[operator_idx]
         )
-        beta = pm.Normal("beta", mu=0, sigma=population_scale, dims="predictors")
 
-        # 7. Group-specific effects (remaining components)
-        # Each grouping factor gets one variance component
-        component_idx = n_predictors
-
-        # Treatment effects (if treatment is a grouping factor)
-        treatment_scale = pm.Deterministic(
-            "treatment_scale",
-            pt.sqrt(sigma_squared * phi[component_idx] * W)
-        )
-        treatment_effects = pm.Normal("treatment_effects", mu=0, sigma=treatment_scale, dims="treatment")
-        component_idx += 1
-
-        # Nuisance effects (if nuisance factors are grouping factors)
-        nuisance_scale = pm.Deterministic(
-            "nuisance_scale",
-            pt.sqrt(sigma_squared * phi[component_idx] * W)
-        )
-        nuisance_effects = pm.Normal("nuisance_effects", mu=0, sigma=nuisance_scale, dims="nuisance_factor")
-        component_idx += 1
-
-        # Blocking effects (if blocking factors are grouping factors)
-        blocking_scale = pm.Deterministic(
-            "blocking_scale",
-            pt.sqrt(sigma_squared * phi[component_idx] *x W)
-        )
-        blocking_effects = pm.Normal("blocking_effects", mu=0, sigma=blocking_scale, dims="block")
-
-        # 8. Linear predictor
-        eta = b0 + pm.math.dot(X, beta)
-
-        # Add group-specific effects based on factor types
-        if has_treatment_groups:
-            eta += treatment_effects[treatment_idx]
-        if has_nuisance_groups:
-            eta += nuisance_effects[nuisance_idx]
-        if has_blocking_groups:
-            eta += blocking_effects[block_idx]
-
-        # 9. Likelihood
-        y = pm.Normal("y", mu=eta, sigma=sigma, observed=y_data, dims="obs")
-
-        # 10. Derived quantities for interpretation
-        # R² calculation using empirical variance of linear predictor (correct R2D2M2 approach)
-        explained_variance = pm.Deterministic("explained_variance", pm.math.var(eta))
-        total_variance = pm.Deterministic("total_variance", pm.math.var(eta) + sigma_squared)
-
-        # Theoretical signal variance (W × σ²) for prior specification
-        theoretical_signal_variance = pm.Deterministic("theoretical_signal_variance", W * sigma_squared)
+        # 10. Observed data
+        y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
     ```
 
     ### Factor Type Guidelines:
-    - **TREATMENT**: Primary effects of interest (can be population-level or group-specific)
-    - **NUISANCE**: Sources of variation to control for (plate, day, operator effects)
-    - **BLOCKING**: Experimental design stratification (blocks, strata)
-    - **COVARIATE**: Continuous variables (population-level fixed effects)
+    - **TREATMENT**: The experimental conditions you want to compare (e.g., different drugs, concentrations, methods)
+    - **NUISANCE**: Sources of experimental variation that aren't of primary interest (e.g., different days, operators, equipment)
+    - **BLOCKING**: Experimental design factors that help control variation (e.g., batches, time blocks)
+    - **COVARIATE**: Continuous measurements that might affect the outcome (e.g., temperature, pH, initial concentration)
 
-    **Signal Allocation Strategy:**
-    - Population-level effects: Each predictor gets its own signal allocation
-    - Group-specific effects: Each grouping factor type gets one shared signal allocation
-    - All components compete for total signal strength W
-    - Dirichlet concentration parameter controls sparsity (smaller = more sparse)
+    **Effect Allocation Strategy:**
+    - Treatment effects: Each treatment condition gets its own effect estimate with explicit dimensions
+    - Experimental variation: Each source of variation (day, operator, etc.) gets its own effect estimate
+    - All effects compete for the total experimental effect strength via the Dirichlet allocation
+    - The allocation controls how much each factor contributes to the overall variation
 
     ### Response Type Handling:
-    - **Gaussian**: Use Normal likelihood with residual variance
-    - **Poisson**: Use Poisson likelihood (no residual variance)
-    - **Binomial**: Use Binomial likelihood with logit/probit link
-    - **Other**: Use appropriate likelihood with proper link functions
+    - **Gaussian**: Use Normal likelihood for continuous measurements (e.g., concentration, weight, absorbance)
+    - **Poisson**: Use Poisson likelihood for count data (e.g., colony counts, cell counts)
+    - **Binomial**: Use Binomial likelihood for proportion data (e.g., success rates, survival rates)
+    - **Other**: Use appropriate likelihood for other measurement types
+
+    ### Coordinates and Dimensions Setup:
+    ```python
+    coords = {
+        "treatment_1": ["level_1", "level_2", "level_3"],
+        "treatment_2": ["low", "medium", "high"],
+        "day": ["day_1", "day_2", "day_3"],
+        "operator": ["op_1", "op_2"],
+        "replicate": ["rep_1", "rep_2", "rep_3"],
+        "obs": np.arange(len(y_data))
+    }
+    ```
 
     Key requirements:
     1. Generate complete, runnable PyMC code
-    2. Use R2D2M2 framework with proper variance decomposition
-    3. Handle different factor types with appropriate priors
-    4. Generate appropriate PyMC coordinates and dimensions
-    5. Include data loading and preprocessing code
-    6. Add helpful comments explaining the R2D2 structure
+    2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
+    3. Create separate coefficients for each treatment level with proper dimensions
+    4. Handle different factor types with appropriate priors
+    5. Generate comprehensive PyMC coordinates and use dims extensively
+    6. Include data loading and preprocessing code
+    7. Add helpful comments explaining the experimental structure
+    8. Use accessible variable names that relate to the experiment
+    9. Generate a description that names specific experimental factors and treatment levels
+    10. Provide concrete interpretation examples using actual factor names
+    11. Use vectorized operations and broadcasting instead of loops
+    12. Make model structure explicit and readable
     """  # noqa: E501
 
 
@@ -193,15 +191,26 @@ def generate_pymc_model_prompt(experiment_json: str):
     Experiment Description (JSON):
     {{ experiment_json }}
 
-    Please generate complete, runnable PyMC code that:
-    1. Loads the data
-    2. Sets up appropriate coordinates and dimensions
-    3. Implements the R2D2 framework based on the experiment structure
-    4. Handles all factor types correctly
-    5. Includes proper variance component allocation
-    6. Uses appropriate likelihood based on response type
+    Please generate:
+    1. A natural language description of what the model does and how it works
+    2. Complete, runnable PyMC code that:
+       - Loads the data
+       - Sets up appropriate coordinates and dimensions
+       - Implements the R2D2 framework based on the experiment structure
+       - Handles all factor types correctly
+       - Includes proper variance component allocation
+       - Uses appropriate likelihood based on response type
 
-    Return only the PEP 723 compliant Python code."""
+        The description should be specific and actionable:
+    - Name the actual experimental factors and treatment levels from the experiment
+    - Explain what each individual coefficient represents (e.g., "the effect of PBS compared to Tris HCl")
+    - Provide concrete interpretation examples (e.g., "if the PBS coefficient is positive, PBS increases encapsulation efficiency")
+    - Give prescriptive guidance on what the results mean for experimental decisions
+    - Use the actual response variable name and units when available
+
+    Make the description specific to this experiment, not generic. Include actual factor names and treatment levels.
+    Focus on practical interpretation that helps the experimenter make decisions.
+    """  # noqa: E501
 
 
 def generate_pymc_model(

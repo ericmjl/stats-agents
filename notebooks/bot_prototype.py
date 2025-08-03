@@ -14,7 +14,7 @@
 
 import marimo
 
-__generated_with = "0.14.13"
+__generated_with = "0.14.15"
 app = marimo.App(width="full")
 
 
@@ -119,6 +119,12 @@ def _(lmb, response):
     model_code = model_bot(generate_pymc_model_prompt(response.model_dump_json()))
 
     return (model_code,)
+
+
+@app.cell
+def _(model_code):
+    print(model_code.dict()["description"])
+    return
 
 
 @app.cell
