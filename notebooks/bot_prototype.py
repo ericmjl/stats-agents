@@ -14,7 +14,7 @@
 
 import marimo
 
-__generated_with = "0.14.15"
+__generated_with = "0.14.16"
 app = marimo.App(width="full")
 
 
@@ -84,7 +84,8 @@ def _():
         specific well positions across multiple 96-well plates. We need to control for
         plate effects, day effects, and operator effects, but we're not explicitly
         controlling for well position effects which could introduce spatial bias due
-        to the stamp plating method.""",
+        to the stamp plating method. We  think there might be a sigmoidal dose-dependent effect
+        for salt concentrations, buffer concentrations, and mixing speeds.""",  # noqa: E501
     ]
     return (example_descriptions,)
 
@@ -123,13 +124,27 @@ def _(lmb, response):
 
 @app.cell
 def _(model_code):
-    print(model_code.dict()["description"])
+    import marimo as mo
+
+    mo.md(model_code.dict()["description"])
+    return (mo,)
+
+
+@app.cell
+def _(mo, model_code):
+    mo.md(f"""```python
+    {model_code.dict()["model_code"]}
+    ```""")
     return
 
 
 @app.cell
 def _(model_code):
-    print(model_code.dict()["model_code"])
+    import io
+
+    import pandas as pd
+
+    pd.read_csv(io.StringIO(model_code.dict()["sample_data_csv"]))
     return
 
 

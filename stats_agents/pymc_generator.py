@@ -83,6 +83,8 @@ def pymc_generation_system():
     4. **Hierarchical Structure**: Handle nested effects (e.g., treatment within blocks)
 
     ### R2D2M2 Implementation Pattern (NO FOR-LOOPS):
+
+    **Example 1: Linear Response Model**
     ```python
     import pymc as pm
     import numpy as np
@@ -130,6 +132,68 @@ def pymc_generation_system():
         )
 
         # 10. Observed data
+        y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
+    ```
+
+    **Example 2: Sigmoidal Response Model with Link Functions**
+    ```python
+    import pymc as pm
+    import numpy as np
+    import pytensor.tensor as pt
+
+    with pm.Model(coords=coords) as model:
+        # 1. Measurement precision (unexplained variance)
+        sigma = pm.HalfNormal("sigma", sigma=1.0)
+
+        # 2. Model fit quality (proportion of variation explained by experimental factors)
+        r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
+
+        # 3. Total experimental effect strength (signal-to-noise ratio)
+        model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
+
+        # 4. Total explainable variance
+        W = pm.Deterministic("W", model_snr * sigma**2)
+
+        # 5. Variance proportions across components
+        # [concentration_effect, treatment_effect, day_effects, operator_effects]
+        phi = pm.Dirichlet("phi", a=np.array([70, 20, 7, 3]))  # Concentration effect dominates
+
+        # 6. Individual variance components
+        concentration_variance = pm.Deterministic("concentration_variance", phi[0] * W)
+        treatment_variance = pm.Deterministic("treatment_variance", phi[1] * W)
+        day_variance = pm.Deterministic("day_variance", phi[2] * W)
+        operator_variance = pm.Deterministic("operator_variance", phi[3] * W)
+
+        # 7. Sigmoidal curve parameters (in log space for positivity)
+        max_response = pm.Normal("max_response", mu=100, sigma=10)  # Maximum response
+        steepness = pm.HalfNormal("steepness", sigma=2)  # Steepness parameter (positive)
+        ec50 = pm.Normal("ec50", mu=np.log(10), sigma=1, dims="treatment")  # Log EC50 per treatment
+
+        # 8. Treatment effects on EC50 (shifts the curve)
+        treatment_effect = pm.Normal("treatment_effect", mu=0, sigma=np.sqrt(treatment_variance), dims="treatment")
+
+        # 9. Nuisance factor effects
+        day_effects = pm.Normal("day_effects", mu=0, sigma=np.sqrt(day_variance), dims="day")
+        operator_effects = pm.Normal("operator_effects", mu=0, sigma=np.sqrt(operator_variance), dims="operator")
+
+        # 10. Linear predictor (logit space)
+        linear_predictor = (
+            ec50[treatment_idx] + treatment_effect[treatment_idx] +
+            day_effects[day_idx] + operator_effects[operator_idx]
+        )
+
+        # 11. Sigmoidal response using logistic function
+        # Transform concentration to log scale for better numerical properties
+        log_concentration = pt.log(concentration_data)
+
+        # Sigmoidal curve: response = max_response / (1 + exp(-steepness * (log_conc - ec50)))
+        predicted_response = pm.Deterministic(
+            "predicted_response",
+            max_response / (1 + pt.exp(-steepness * (log_concentration - linear_predictor))),
+            dims="obs"
+        )
+
+        # 12. Observed data (could be proportions, use logit transform if needed)
         y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
     ```
 
