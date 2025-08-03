@@ -145,11 +145,31 @@ def pymc_generation_system():
     - All effects compete for the total experimental effect strength via the Dirichlet allocation
     - The allocation controls how much each factor contributes to the overall variation
 
-    ### Response Type Handling:
+    ### Response Type Handling and Transformations:
     - **Gaussian**: Use Normal likelihood for continuous measurements (e.g., concentration, weight, absorbance)
     - **Poisson**: Use Poisson likelihood for count data (e.g., colony counts, cell counts)
-    - **Binomial**: Use Binomial likelihood for proportion data (e.g., success rates, survival rates)
+    - **Proportions/Percentages**: Use logit transform to convert to unbounded space, then use Gaussian likelihood
+      - Raw data comes as percentages (0-100%) or proportions (0-1)
+      - Apply logit transform: logit(y) = log(y/(1-y)) for proportions or log(y/(100-y)) for percentages
+      - Model in logit space with Gaussian likelihood (much easier mathematically)
+      - Transform back to original scale for interpretation
     - **Other**: Use appropriate likelihood for other measurement types
+
+    ### Nonlinear Relationship Handling:
+    When collaborators specify sigmoidal/saturation relationships (e.g., concentration-response, time-response):
+    - **Sigmoidal curves**: Use logistic function: y = L / (1 + exp(-k(x - x0)))
+      - L = maximum response (asymptote)
+      - k = steepness parameter
+      - x0 = inflection point (EC50, half-maximal concentration/time)
+    - **Saturation curves**: Use Michaelis-Menten: y = Vmax * x / (Km + x)
+      - Vmax = maximum velocity/response
+      - Km = concentration/time at half-maximal response
+    - **Exponential decay**: Use y = A * exp(-k * x) + baseline
+      - A = initial amplitude
+      - k = decay rate
+      - baseline = asymptotic value
+    - Model parameters in log space when they must be positive
+    - Use appropriate priors for biological parameters (e.g., EC50 in reasonable concentration range)
 
     ### Coordinates and Dimensions Setup:
     ```python
@@ -209,6 +229,9 @@ def pymc_generation_system():
     12. Make model structure explicit and readable
     13. Generate realistic sample data CSV with appropriate volume and value ranges
     14. Include all experimental factors and response variables in the sample data
+    15. Use logit transform for proportions/percentages and model in Gaussian space
+    16. Implement sigmoidal/saturation curves when specified by collaborators
+    17. Use appropriate parameterizations and priors for nonlinear relationships
     """  # noqa: E501
 
 
