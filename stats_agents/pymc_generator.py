@@ -18,6 +18,10 @@ class PyMCModelResponse(BaseModel):
         ...,
         description="Natural language description of what the model does and how it works",  # noqa: E501
     )
+    sample_data_csv: str = Field(
+        ...,
+        description="CSV-formatted sample data table with realistic values for the experiment. Should include all experimental factors and response variables with sufficient rows to feel realistic for laboratory data collection.",  # noqa: E501
+    )
     python_version: str = Field(
         default="3.12", description="Minimum Python version required"
     )
@@ -159,6 +163,37 @@ def pymc_generation_system():
     }
     ```
 
+    ### Sample Data Generation Guidelines:
+    Generate realistic sample data that feels appropriate for laboratory experiments:
+
+    **Data Volume Guidelines:**
+    - **Small experiments**: 20-50 observations (e.g., 3 treatments × 3 replicates × 3 days = 27 observations)
+    - **Medium experiments**: 50-200 observations (e.g., 4 treatments × 4 replicates × 8 days = 128 observations)
+    - **Large experiments**: 200+ observations (e.g., 6 treatments × 5 replicates × 10 days = 300 observations)
+
+    **Realistic Value Ranges:**
+    - **Concentration measurements**: 0.1-1000 μM, 0.01-100 mg/mL, etc.
+    - **Absorbance/fluorescence**: 0.001-2.0 (log scale often appropriate)
+    - **Count data**: 0-1000 colonies, 0-10000 cells, etc.
+    - **Proportions**: 0.0-1.0 (success rates, survival rates)
+    - **Time measurements**: 0-24 hours, 0-7 days, etc.
+    - **Temperature**: 4-37°C (biological range)
+    - **pH**: 6.0-8.5 (biological range)
+
+    **Experimental Design Considerations:**
+    - Include all treatment levels and nuisance factors
+    - Add realistic variation (measurement noise, day-to-day variation)
+    - Use meaningful factor names (e.g., "PBS", "Tris_HCl", "Day_1", "Operator_Alice")
+    - Include replicate information when appropriate
+    - Add any blocking factors or covariates
+
+    **CSV Format Requirements:**
+    - Use clear, descriptive column names
+    - Include all experimental factors as separate columns
+    - Include the response variable column
+    - Use realistic data types (strings for factors, floats for measurements)
+    - Add appropriate units in column names if helpful (e.g., "concentration_uM", "time_hours")
+
     Key requirements:
     1. Generate complete, runnable PyMC code
     2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
@@ -172,6 +207,8 @@ def pymc_generation_system():
     10. Provide concrete interpretation examples using actual factor names
     11. Use vectorized operations and broadcasting instead of loops
     12. Make model structure explicit and readable
+    13. Generate realistic sample data CSV with appropriate volume and value ranges
+    14. Include all experimental factors and response variables in the sample data
     """  # noqa: E501
 
 
@@ -200,6 +237,11 @@ def generate_pymc_model_prompt(experiment_json: str):
        - Handles all factor types correctly
        - Includes proper variance component allocation
        - Uses appropriate likelihood based on response type
+    3. A realistic sample data table in CSV format that:
+       - Includes all experimental factors and treatment levels
+       - Contains the response variable with realistic values
+       - Has sufficient rows to feel appropriate for laboratory data collection
+       - Uses meaningful factor names and realistic value ranges
 
         The description should be specific and actionable:
     - Name the actual experimental factors and treatment levels from the experiment
