@@ -74,7 +74,7 @@ dependencies = [
     "numpy",
     "pymc",
     "typer",
-    "llamabot",
+    "llamabot[all]",
     "pytensor",
     "xarray",
     "pydantic>=2.0",
