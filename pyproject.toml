@@ -91,7 +91,7 @@ omit = [
 ]
 
 [tool.pixi.project]
-channels = ["conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
