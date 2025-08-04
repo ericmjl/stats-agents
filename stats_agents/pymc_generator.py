@@ -247,6 +247,38 @@ def pymc_generation_system():
     }
     ```
 
+    ### Replicate Structure Handling:
+    When replicates are present in the experiment:
+    1. **Always include replicate dimensions** in PyMC coordinates
+    2. **Create nested random effects** for replicates within experimental units
+    3. **Use proper indexing** to link replicates to their parent units
+    4. **Account for nested variance structure** in the R2D2 allocation
+
+    **Example with nested replicates:**
+    ```python
+    # If replicates are nested within plates
+    coords = {
+        "plate": ["plate_1", "plate_2", "plate_3"],
+        "replicate": ["rep_1", "rep_2", "rep_3"],  # 3 replicates per plate
+        "obs": np.arange(len(y_data))
+    }
+
+    with pm.Model(coords=coords) as model:
+        # Plate-level effects
+        plate_effect = pm.Normal("plate_effect", mu=0, sigma=plate_sd, dims="plate")
+
+        # Replicate effects nested within plates
+        replicate_effect = pm.Normal("replicate_effect", mu=0, sigma=replicate_sd, dims=("plate", "replicate"))
+
+        # Linear predictor includes both levels
+        mu_obs = (
+            baseline +
+            treatment_effect[treatment_idx] +
+            plate_effect[plate_idx] +
+            replicate_effect[plate_idx, replicate_idx]
+        )
+    ```
+
     ### Sample Data Generation Guidelines:
     Generate realistic sample data that feels appropriate for laboratory experiments:
 
