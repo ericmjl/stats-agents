@@ -84,7 +84,7 @@ def pymc_generation_system():
 
     ### R2D2M2 Implementation Pattern (NO FOR-LOOPS):
 
-    **Example 1: Linear Response Model**
+    **Example 1: Linear Response Model with Replicates**
     ```python
     import pymc as pm
     import numpy as np
@@ -105,7 +105,8 @@ def pymc_generation_system():
 
         # 5. Variance proportions across components (treatment + nuisance factors)
         # Example: [treatment_1, treatment_2, day_effects, operator_effects]
-        phi = pm.Dirichlet("phi", a=np.array([90, 5, 3, 2]))  # Adjust based on expected importance
+        # Note: No replicate variance needed - replicates don't have systematic effects
+        phi = pm.Dirichlet("phi", a=np.array([70, 20, 5, 5]), dims="variance_components")  # Allocate among meaningful effects only
 
         # 6. Individual variance components
         treatment_1_variance = pm.Deterministic("treatment_1_variance", phi[0] * W)
@@ -121,17 +122,21 @@ def pymc_generation_system():
         day_effects = pm.Normal("day_effects", mu=0, sigma=np.sqrt(day_variance), dims="day")
         operator_effects = pm.Normal("operator_effects", mu=0, sigma=np.sqrt(operator_variance), dims="operator")
 
-        # 9. Predicted response using broadcasting (no loops)
-        # Use indicator variables or design matrices for treatments
+        # 9. Global intercept (always include)
+        mu = pm.Normal("mu", mu=0, sigma=10)
+
+        # 10. Predicted response using broadcasting (no loops)
+        # Note: No replicate effect needed - replicates are just multiple observations
+        # of the same experimental conditions
         predicted_response = (
-            baseline +
+            mu +  # Global intercept
             treatment_1_effect[treatment_1_idx] +
             treatment_2_effect[treatment_2_idx] +
             day_effects[day_idx] +
             operator_effects[operator_idx]
         )
 
-        # 10. Observed data
+        # 11. Observed data
         y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
     ```
 
@@ -202,12 +207,35 @@ def pymc_generation_system():
     - **NUISANCE**: Sources of experimental variation that aren't of primary interest (e.g., different days, operators, equipment)
     - **BLOCKING**: Experimental design factors that help control variation (e.g., batches, time blocks)
     - **COVARIATE**: Continuous measurements that might affect the outcome (e.g., temperature, pH, initial concentration)
+    - **REPLICATE**: Technical or biological replicates (e.g., multiple measurements of the same sample, multiple samples per condition)
+
+    **CRITICAL: Replicate Handling - Two Cases:**
+
+    **Case 1: Technical Replicates (most common)**
+    - Multiple measurements of the same experimental unit/condition
+    - **Do NOT add replicate effects** - they should have identical expected values
+    - **Do NOT include replicate variance** in Dirichlet allocation
+    - Measurement error (sigma) captures replicate-to-replicate variation
+    - Example: "3 technical replicates per plate" = 3 measurements from each well
+
+    **Case 2: Replicates with Systematic Differences**
+    - When replicates have their own systematic variation (e.g., different starting values, spatial effects)
+    - **DO include replicate effects** with proper nested dimensions
+    - **DO include replicate variance** in Dirichlet allocation
+    - Example phrases: "each replicate has its own starting value", "spatial variation across replicates", "replicate-specific baseline"
+
+    **How to distinguish:**
+    - Look for phrases indicating systematic replicate differences
+    - If description mentions replicate-specific properties → Case 2
+    - If just "technical replicates" or "multiple measurements" → Case 1
 
     **Effect Allocation Strategy:**
     - Treatment effects: Each treatment condition gets its own effect estimate with explicit dimensions
     - Experimental variation: Each source of variation (day, operator, etc.) gets its own effect estimate
-    - All effects compete for the total experimental effect strength via the Dirichlet allocation
-    - The allocation controls how much each factor contributes to the overall variation
+    - **Replicates: NO separate effects** - they are just multiple observations of the same conditions
+    - The Dirichlet allocation partitions the explained variance among different sources of variation
+    - Each component represents the proportion of total explainable variance attributed to that factor
+    - **IMPORTANT**: Do NOT include replicates in the variance allocation - only meaningful sources of variation
 
     ### Response Type Handling and Transformations:
     - **Gaussian**: Use Normal likelihood for continuous measurements (e.g., concentration, weight, absorbance)
@@ -243,41 +271,154 @@ def pymc_generation_system():
         "day": ["day_1", "day_2", "day_3"],
         "operator": ["op_1", "op_2"],
         "replicate": ["rep_1", "rep_2", "rep_3"],
+        "variance_components": ["treatment_1", "treatment_2", "day", "operator"],  # Components in phi
         "obs": np.arange(len(y_data))
     }
     ```
 
+    **CRITICAL: Always include variance_components coordinate**
+    - The `phi` parameter MUST have `dims="variance_components"`
+    - The coordinate should list the effects that variance is being decomposed among
+    - This makes the model interpretable and ensures proper indexing
+
     ### Replicate Structure Handling:
     When replicates are present in the experiment:
-    1. **Always include replicate dimensions** in PyMC coordinates
-    2. **Create nested random effects** for replicates within experimental units
-    3. **Use proper indexing** to link replicates to their parent units
-    4. **Account for nested variance structure** in the R2D2 allocation
+    1. **Include replicate dimensions** in PyMC coordinates for data structure
+    2. **Do NOT create replicate effects** - replicates should have identical expected values
+    3. **Use proper indexing** for treatments and nuisance factors only
+    4. **Measurement error (sigma) captures** replicate-to-replicate variation
 
-    **Example with nested replicates:**
+    **Example with nested replicates (correct approach):**
     ```python
     # If replicates are nested within plates
     coords = {
+        "treatment": ["control", "treatment_A", "treatment_B"],
         "plate": ["plate_1", "plate_2", "plate_3"],
-        "replicate": ["rep_1", "rep_2", "rep_3"],  # 3 replicates per plate
+        "replicate": ["rep_1", "rep_2", "rep_3"],  # For data structure only
         "obs": np.arange(len(y_data))
     }
 
     with pm.Model(coords=coords) as model:
-        # Plate-level effects
+        # Treatment effects
+        treatment_effect = pm.Normal("treatment_effect", mu=0, sigma=treatment_sd, dims="treatment")
+
+        # Plate-level effects (nuisance factor)
         plate_effect = pm.Normal("plate_effect", mu=0, sigma=plate_sd, dims="plate")
 
-        # Replicate effects nested within plates
-        replicate_effect = pm.Normal("replicate_effect", mu=0, sigma=replicate_sd, dims=("plate", "replicate"))
+        # NO replicate effects - replicates are just multiple observations
 
-        # Linear predictor includes both levels
+        # Linear predictor - same expected value for all replicates within a condition
         mu_obs = (
             baseline +
             treatment_effect[treatment_idx] +
-            plate_effect[plate_idx] +
-            replicate_effect[plate_idx, replicate_idx]
+            plate_effect[plate_idx]
+            # No replicate indexing needed - all replicates have same expected value
         )
     ```
+
+    **Key points for nested replicates:**
+    1. Include "replicate" in coordinates for data structure clarity
+    2. Do NOT create replicate effects - they should have the same expected value
+    3. Do NOT include replicate variance in the Dirichlet allocation
+    4. Measurement error (sigma) captures replicate-to-replicate variation naturally
+
+    ### MANDATORY Model Generation Workflow:
+    Before generating ANY model, you MUST:
+
+    **STEP 1: Parse the experiment description JSON for replicate_structure**
+    ```python
+    # Check if experiment_description.replicate_structure exists
+    # If it exists, extract:
+    # - replicate_type (technical/biological)
+    # - replicates_per_unit (number)
+    # - nested_under (what unit they're nested in)
+    ```
+
+    **STEP 2: Set up variance decomposition**
+    - ALWAYS create "variance_components" coordinate listing the effects being decomposed
+    - Set phi parameter with dims="variance_components"
+    - Determine if replicates need their own variance component (Case 1 vs Case 2)
+    - If Case 2: Add replicate variance component to Dirichlet allocation
+    - If Case 1: Do NOT include replicate variance
+
+    **STEP 3: Generate proper indexing**
+    ```python
+    # Always use .values for indexing
+    treatment_idx = data['treatment'].astype('category').cat.codes
+    plate_idx = data['plate'].astype('category').cat.codes  # unit for nesting
+    replicate_idx = data['replicate'].astype('category').cat.codes
+    ```
+
+    **STEP 4: Include global intercept**
+    ```python
+    # Always include baseline/intercept
+    mu = pm.Normal("mu", mu=0, sigma=10)
+    ```
+
+    **TEMPLATE Case 1: Technical Replicates (simple multiple measurements):**
+    ```python
+    # Example: "3 technical replicates per plate"
+    coords = {
+        "treatment": ["control", "treatment_A", "treatment_B"],
+        "plate": ["plate_1", "plate_2", "plate_3"],
+        "cell_line": ["line_1", "line_2", "line_3", "line_4"],
+        "replicate": ["rep_1", "rep_2", "rep_3"],  # For data structure only
+        "variance_components": ["treatment", "cell_line", "plate", "other"],  # Components in phi
+        "obs": np.arange(len(data))
+    }
+
+    # Dirichlet allocation for meaningful effects only
+    phi = pm.Dirichlet("phi", a=np.array([40, 30, 20, 10]), dims="variance_components")
+
+    # NO replicate effects - replicates have same expected value
+    predicted_response = (
+        mu +
+        treatment_effect[treatment_idx] +
+        cell_line_effect[cell_line_idx] +
+        plate_effect[plate_idx]
+        # No replicate terms
+    )
+    ```
+
+    **TEMPLATE Case 2: Replicates with Systematic Differences:**
+    ```python
+    # Example: "each replicate has its own starting value" or "spatial variation across replicates"
+    coords = {
+        "treatment": ["control", "treatment_A", "treatment_B"],
+        "plate": ["plate_1", "plate_2", "plate_3"],
+        "replicate": ["rep_1", "rep_2", "rep_3"],
+        "variance_components": ["treatment", "plate", "replicate", "other"],  # Components in phi
+        "obs": np.arange(len(data))
+    }
+
+    # Include replicate variance in Dirichlet allocation
+    phi = pm.Dirichlet("phi", a=np.array([40, 30, 20, 10]), dims="variance_components")
+    replicate_variance = pm.Deterministic("replicate_variance", phi[2] * W)
+
+    # Include replicate effects with nested dimensions
+    replicate_effect = pm.Normal("replicate_effect", mu=0, sigma=pt.sqrt(replicate_variance), dims=("plate", "replicate"))
+
+    predicted_response = (
+        mu +
+        treatment_effect[treatment_idx] +
+        plate_effect[plate_idx] +
+        replicate_effect[plate_idx, replicate_idx]  # Include replicate effects
+    )
+    ```
+
+    ### Model Generation Checklist:
+    Before generating the model, check the experiment description for:
+    1. **Replicate structure**: Look for `replicate_structure` field in the experiment description
+    2. **Replicate type**: Determine if replicates are technical or biological
+    3. **Nesting structure**: Identify what the replicates are nested under (e.g., plate, mouse, treatment)
+    4. **Number of replicates**: Get the number of replicates per experimental unit
+    5. **Factor types**: Identify all treatment, nuisance, and replicate factors
+
+    **If replicates are present:**
+    - Include replicate dimensions in PyMC coordinates
+    - Add replicate variance to the Dirichlet allocation
+    - Use proper nested indexing: `replicate_effect[unit_idx, replicate_idx]`
+    - Create appropriate indexing variables for both unit and replicate dimensions
 
     ### Sample Data Generation Guidelines:
     Generate realistic sample data that feels appropriate for laboratory experiments:
@@ -328,6 +469,12 @@ def pymc_generation_system():
     15. Use logit transform for proportions/percentages and model in Gaussian space
     16. Implement sigmoidal/saturation curves when specified by collaborators
     17. Use appropriate parameterizations and priors for nonlinear relationships
+    18. **ALWAYS include "variance_components" coordinate that lists the effects in the phi parameter**
+    19. **The phi parameter MUST have dims="variance_components" for interpretability**
+    20. **Distinguish between technical replicates (Case 1) and replicates with systematic differences (Case 2)**
+    21. **Case 1 (technical replicates): Do NOT include replicate effects or variance in Dirichlet allocation**
+    22. **Case 2 (systematic differences): DO include replicate effects with nested dims and variance in Dirichlet allocation**
+    23. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
     """  # noqa: E501
 
 

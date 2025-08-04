@@ -3,8 +3,11 @@
 # dependencies = [
 #     "llamabot==0.13.0",
 #     "marimo",
+#     "numpy==2.3.2",
 #     "pandas==2.3.1",
 #     "pydantic==2.11.7",
+#     "pymc==5.25.1",
+#     "pytensor==2.31.7",
 #     "stats-agents==0.0.1",
 # ]
 #
@@ -22,39 +25,13 @@ app = marimo.App(width="full")
 def _():
     import llamabot as lmb
 
-    from stats_agents.experiment_parser import ExperimentDescription
-
-    return ExperimentDescription, lmb
+    return (lmb,)
 
 
 @app.cell
-def _(ExperimentDescription, lmb):
-    system_prompt = """You are an expert at parsing biological experiment descriptions.
+def _():
+    from stats_agents.experiment_parser import experiment_bot
 
-    Extract all relevant details from the user's description and populate the ExperimentDescription model.
-    Be thorough and identify:
-    - Response variables and their types
-    - Treatment factors (primary effects of interest)
-    - Nuisance factors (sources of variation to control for like plate, day, operator effects)
-    - Blocking factors (experimental design stratification)
-    - Covariates (continuous variables)
-    - Experimental units
-    - Timepoints for longitudinal data
-    - Experimental aims
-
-    For factor types:
-    - TREATMENT: Primary effects of interest (drugs, doses, interventions)
-    - NUISANCE: Sources of variation to control for (plate, day, operator, batch effects)
-    - BLOCKING: Experimental design stratification (blocks, strata)
-    - COVARIATE: Continuous covariates (age, weight, etc.)
-
-    Return a complete ExperimentDescription with all fields properly populated."""  # noqa: E501
-
-    experiment_bot = lmb.StructuredBot(
-        system_prompt=system_prompt,
-        pydantic_model=ExperimentDescription,
-        model_name="gpt-4o",
-    )
     return (experiment_bot,)
 
 
@@ -73,7 +50,7 @@ def _():
         """We're looking at bacterial colony counts under different growth conditions.
         We have 4 different media types and 3 different temperatures. Each combination
         is replicated 5 times. The experiment was run by 2 different operators over
-        2 weeks. We want to control for operator effects and time effects.""",
+        2 weeks. We want to control for operator effects and time effects.""",  # noqa: E501
         """We're investigating siRNA encapsulation efficiency in a 96-well plate format
         using a stamp plating approach. The experiment tests 3 inorganic salt identities
         (NaCl, KCl, MgCl2) at 4 concentrations (50mM, 100mM, 200mM, 400mM), 2 buffer
@@ -86,13 +63,23 @@ def _():
         controlling for well position effects which could introduce spatial bias due
         to the stamp plating method. We  think there might be a sigmoidal dose-dependent effect
         for salt concentrations, buffer concentrations, and mixing speeds.""",  # noqa: E501
+        """We're studying protein expression levels in response to different growth factor
+        treatments. We have 3 treatment conditions: control, growth factor A, and growth
+        factor B. Each treatment is applied to 4 different cell lines. The experiment
+        uses 6 plates total, with each plate containing 3 technical replicates of each
+        treatment-cell line combination. So each plate has 36 wells (3 treatments × 4
+        cell lines × 3 replicates). We need to control for plate effects and account
+        for the nested structure where replicates are nested within plates.
+        The readout is done by mass spec with the readout being area under curve of the mass spec peaks""",  # noqa: E501
     ]
     return (example_descriptions,)
 
 
 @app.cell
 def _(example_descriptions, experiment_bot):
-    response = experiment_bot(example_descriptions[3])
+    response = experiment_bot(
+        example_descriptions[4]
+    )  # Test the nested replicate example
     response
     return (response,)
 
@@ -132,9 +119,13 @@ def _(model_code):
 
 @app.cell
 def _(mo, model_code):
-    mo.md(f"""```python
+    mo.md(
+        f"""
+    ```python
     {model_code.dict()["model_code"]}
-    ```""")
+    ```
+    """
+    )
     return
 
 
@@ -144,12 +135,106 @@ def _(model_code):
 
     import pandas as pd
 
-    pd.read_csv(io.StringIO(model_code.dict()["sample_data_csv"]))
-    return
+    data = pd.read_csv(io.StringIO(model_code.dict()["sample_data_csv"]))
+    data
+    return (data,)
 
 
 @app.cell
-def _():
+def _(data):
+    import numpy as np
+    import pymc as pm
+    import pytensor.tensor as pt
+
+    treatment_idx = data["treatment"].astype("category").cat.codes
+    cell_line_idx = data["cell_line"].astype("category").cat.codes
+    plate_idx = data["plate"].astype("category").cat.codes
+
+    # Define coordinates for the model
+    coords = {
+        "treatment": ["control", "growth factor A", "growth factor B"],
+        "cell_line": ["cell line 1", "cell line 2", "cell line 3", "cell line 4"],
+        "plate": ["plate 1", "plate 2", "plate 3", "plate 4", "plate 5", "plate 6"],
+        "variance_components": ["treatment", "cell_line", "plate"],
+        "obs": np.arange(len(data)),
+    }
+
+    with pm.Model(coords=coords) as model:
+        # 1. Measurement precision (unexplained variance)
+        sigma = pm.HalfNormal("sigma", sigma=1.0)
+
+        # 2. Model fit quality
+        # (proportion of variation explained by experimental factors)
+        r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
+
+        # 3. Total experimental effect strength (signal-to-noise ratio)
+        model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
+
+        # 4. Total explainable variance
+        W = pm.Deterministic("W", model_snr * sigma**2)
+
+        # 5. Variance proportions across components
+        phi = pm.Dirichlet("phi", a=np.array([40, 30, 30]), dims="variance_components")
+
+        # 6. Individual variance components
+        treatment_variance = pm.Deterministic("treatment_variance", phi[0] * W)
+        cell_line_variance = pm.Deterministic("cell_line_variance", phi[1] * W)
+        plate_variance = pm.Deterministic("plate_variance", phi[2] * W)
+
+        # 7. Individual treatment effects
+        treatment_effect = pm.Normal(
+            "treatment_effect",
+            mu=0,
+            sigma=pt.sqrt(treatment_variance),
+            dims="treatment",
+        )
+
+        # 8. Blocking factor effects
+        cell_line_effect = pm.Normal(
+            "cell_line_effect",
+            mu=0,
+            sigma=pt.sqrt(cell_line_variance),
+            dims="cell_line",
+        )
+
+        # 9. Nuisance factor effects
+        plate_effect = pm.Normal(
+            "plate_effect", mu=0, sigma=pt.sqrt(plate_variance), dims="plate"
+        )
+
+        # 10. Global intercept
+        mu = pm.Normal("mu", mu=0, sigma=10)
+
+        # 11. Predicted response using broadcasting
+        predicted_response = (
+            mu
+            + treatment_effect[treatment_idx]
+            + cell_line_effect[cell_line_idx]
+            + plate_effect[plate_idx]
+        )
+
+        # 12. Observed data
+        _ = pm.Normal(
+            "y",
+            mu=predicted_response,
+            sigma=sigma,
+            observed=data["response"],
+            dims="obs",
+        )
+
+    return model, pm
+
+
+@app.cell
+def _(model, pm):
+    with model:
+        idata = pm.sample()
+    return (idata,)
+
+
+@app.cell
+def _(idata):
+    idata.posterior.mean(dim=("chain", "draw"))
     return
 
 
