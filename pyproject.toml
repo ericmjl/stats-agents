@@ -99,6 +99,7 @@ stats-agents = { path = ".", editable = true }
 
 # NOTE: Core dependencies (needed for running the program) go here.
 [tool.pixi.dependencies]
+fastmcp = ">=2.11.1,<3"
 
 # NOTE: Testing dependencies (not needed for running program) go here.
 [tool.pixi.feature.tests.dependencies]
