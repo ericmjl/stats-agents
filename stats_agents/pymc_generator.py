@@ -51,135 +51,31 @@ class PyMCModelCode(BaseModel):
 
     def generate_sample_data(self, n_samples: int = 10, experiment=None) -> str:
         """
-        Generate sample data by running prior predictive sampling on the model.
+        Generate sample data using LLM with StructuredBot.
 
         Args:
-            n_samples: Number of prior predictive samples to generate
-            experiment: Optional ExperimentDescription for fallback data generation
+            n_samples: Number of samples to generate
+            experiment: Optional ExperimentDescription for data structure
 
         Returns:
             CSV string containing the sample data
         """
-        from types import ModuleType
+        # Prepare the prompt using the existing prompt function
+        if experiment:
+            experiment_json = experiment.model_dump_json()
+            prompt = generate_pymc_sample_data_prompt(experiment_json, self.model_code)
+        else:
+            # Fallback prompt without experiment
+            prompt = f"""Generate {n_samples} samples of realistic laboratory data.
 
-        # Create a new module to execute the code in
-        module_name = f"pymc_model_{id(self)}"
-        module = ModuleType(module_name)
+PyMC Model Code:
+{self.model_code}
 
-        # Add necessary imports to the module's globals
-        module.__dict__.update(
-            {
-                "pymc": __import__("pymc"),
-                "pandas": __import__("pandas"),
-                "numpy": __import__("numpy"),
-                "pytensor": __import__("pytensor"),
-                "memo": __import__("memo"),
-            }
-        )
+Generate CSV data with {n_samples} rows that includes appropriate factors and realistic response values."""  # noqa: E501
 
-        # Execute the model code to create the model object
-        try:
-            exec(self.model_code, module.__dict__)
-
-            # Get the model object from the module
-            if "model" not in module.__dict__:
-                raise RuntimeError("Model code did not create a 'model' object")
-
-            model = module.__dict__["model"]
-            data = module.__dict__.get("data")
-
-            # Run prior predictive sampling
-            with model:
-                idata = model.sample_prior_predictive(samples=n_samples)
-
-            # Extract mean predictions
-            y_pred = idata.prior_predictive.mean(dims=("chain", "draw"))
-
-            # Create sample data with predicted values
-            if data is not None:
-                sample_data = data.copy()
-                # Replace the response variable with the predicted values
-                if hasattr(y_pred, "values"):
-                    sample_data.iloc[:, -1] = y_pred.values.flatten()
-                else:
-                    sample_data.iloc[:, -1] = y_pred.flatten()
-            else:
-                # Fallback: create minimal data structure
-                sample_data = module.__dict__.get("data", None)
-                if sample_data is None:
-                    # Create a simple fallback DataFrame
-                    import numpy as np
-                    import pandas as pd
-
-                    sample_data = pd.DataFrame(
-                        {
-                            "treatment": ["control", "treatment_A"] * 3,
-                            "response": np.random.normal(100, 20, 6),
-                        }
-                    )
-
-            # Convert to CSV
-            csv_output = sample_data.to_csv(index=False)
-            return csv_output
-
-        except Exception:
-            # If execution fails, create fallback data based on the experiment structure
-            import numpy as np
-            import pandas as pd
-
-            if experiment is not None:
-                # Use experiment description to create better fallback data
-                treatments = experiment.get_treatments()
-                nuisance_factors = experiment.get_nuisance_factors()
-
-                # Create data structure using memo.grid if possible
-                try:
-                    from memo import grid
-
-                    # Create all combinations of factors
-                    factor_dict = {}
-                    for factor_name, levels in treatments.items():
-                        factor_dict[factor_name] = levels
-                    for factor_name, levels in nuisance_factors.items():
-                        factor_dict[factor_name] = levels
-
-                    if factor_dict:
-                        settings = grid(**factor_dict, shuffle=False)
-                        fallback_data = pd.DataFrame(settings)
-                        # Add response variable
-                        fallback_data[experiment.response] = np.random.normal(
-                            100, 20, len(fallback_data)
-                        )
-                    else:
-                        # No factors found, create minimal data
-                        fallback_data = pd.DataFrame(
-                            {
-                                "treatment": ["control", "treatment_A"] * 3,
-                                experiment.response: np.random.normal(100, 20, 6),
-                            }
-                        )
-                except ImportError:
-                    # Fallback without memo.grid
-                    data_dict = {}
-                    for factor_name, levels in treatments.items():
-                        data_dict[factor_name] = levels * 3
-                    for factor_name, levels in nuisance_factors.items():
-                        data_dict[factor_name] = levels * 3
-
-                    n_rows = len(list(data_dict.values())[0]) if data_dict else 6
-                    data_dict[experiment.response] = np.random.normal(100, 20, n_rows)
-                    fallback_data = pd.DataFrame(data_dict)
-            else:
-                # Create minimal fallback data without experiment info
-                fallback_data = pd.DataFrame(
-                    {
-                        "treatment": ["control", "treatment_A"] * 3,
-                        "plate": ["plate_1", "plate_2"] * 3,
-                        "response": np.random.normal(100, 20, 6),
-                    }
-                )
-
-            return fallback_data.to_csv(index=False)
+        # Get the response using the existing bot
+        response = pymc_sample_data_bot(prompt)
+        return response.sample_data_csv
 
 
 class PyMCModelDescription(BaseModel):
@@ -1023,15 +919,6 @@ def pymc_sample_data_generation_system():
     """  # noqa: E501
 
 
-def create_pymc_generator_bot(model_name: str = "gpt-4o") -> lmb.StructuredBot:
-    """Create a StructuredBot for generating PyMC code."""
-    return lmb.StructuredBot(
-        system_prompt=pymc_generation_system(),
-        pydantic_model=PyMCModelResponse,
-        model_name=model_name,
-    )
-
-
 @lmb.prompt(role="user")
 def generate_pymc_model_prompt(experiment_json: str):
     """Please generate PyMC model code for the following experiment:
@@ -1152,6 +1039,13 @@ pymc_sample_data_bot = lmb.StructuredBot(
     model_name="gpt-4o",
 )
 
+# PyMC model generation bot (legacy)
+pymc_model_bot = lmb.StructuredBot(
+    system_prompt=pymc_generation_system(),
+    pydantic_model=PyMCModelResponse,
+    model_name="gpt-4o",
+)
+
 
 def generate_pymc_code(
     experiment: ExperimentDescription,
@@ -1183,37 +1077,8 @@ def generate_pymc_sample_data(
 ) -> PyMCSampleData:
     """Generate sample data by running prior predictive sampling on the model."""
     # Use the new method that runs the actual PyMC code
-    try:
-        csv_data = model_code.generate_sample_data(n_samples=10, experiment=experiment)
-        return PyMCSampleData(sample_data_csv=csv_data)
-    except Exception:
-        # If the prior predictive sampling fails, create a simple fallback
-        import numpy as np
-        import pandas as pd
-
-        # Create simple example data based on the experiment structure
-        # This is a fallback when the model code can't be executed
-        treatments = experiment.get_treatments()
-        nuisance_factors = experiment.get_nuisance_factors()
-
-        # Create a simple data structure
-        data_dict = {}
-        for factor_name, levels in treatments.items():
-            data_dict[factor_name] = levels * 10  # Repeat each level 10 times
-
-        for factor_name, levels in nuisance_factors.items():
-            data_dict[factor_name] = levels * 10  # Repeat each level 10 times
-
-        # Add response variable
-        np.random.seed(42)
-        n_rows = len(list(data_dict.values())[0]) if data_dict else 30
-        data_dict[experiment.response] = np.random.normal(100, 20, n_rows)
-
-        # Create DataFrame and convert to CSV
-        df = pd.DataFrame(data_dict)
-        csv_data = df.to_csv(index=False)
-
-        return PyMCSampleData(sample_data_csv=csv_data)
+    csv_data = model_code.generate_sample_data(n_samples=10, experiment=experiment)
+    return PyMCSampleData(sample_data_csv=csv_data)
 
 
 def generate_pymc_model(
@@ -1221,15 +1086,13 @@ def generate_pymc_model(
     model_name: str = "gpt-4o",
 ) -> PyMCModelResponse:
     """Generate PyMC model code for an experiment description."""
-    bot = create_pymc_generator_bot(model_name)
-
     # Convert experiment to JSON
     experiment_json = experiment.model_dump_json(indent=2)
 
     # Use the user prompt with the experiment JSON
-    response = bot(generate_pymc_model_prompt(experiment_json))
+    response = pymc_model_bot(generate_pymc_model_prompt(experiment_json))
     return response
 
 
-# Default PyMC generator bot
-pymc_bot = create_pymc_generator_bot()
+# Default PyMC generator bot (legacy)
+pymc_bot = pymc_model_bot

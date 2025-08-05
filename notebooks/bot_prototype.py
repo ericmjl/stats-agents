@@ -3,6 +3,7 @@
 # dependencies = [
 #     "llamabot==0.13.0",
 #     "marimo",
+#     "memo==0.2.4",
 #     "numpy==2.3.2",
 #     "pandas==2.3.1",
 #     "pydantic==2.11.7",
@@ -23,9 +24,7 @@ app = marimo.App(width="full")
 
 @app.cell
 def _():
-    import llamabot as lmb
-
-    return (lmb,)
+    return
 
 
 @app.cell
@@ -76,6 +75,17 @@ def _():
 
 
 @app.cell
+def _():
+    # Import the new modular functions
+    from stats_agents.pymc_generator import (
+        generate_pymc_code,
+        generate_pymc_description,
+    )
+
+    return generate_pymc_code, generate_pymc_description
+
+
+@app.cell
 def _(example_descriptions, experiment_bot):
     response = experiment_bot(
         example_descriptions[4]
@@ -91,38 +101,37 @@ def _(response):
 
 
 @app.cell
-def _(lmb, response):
-    from stats_agents.pymc_generator import (
-        PyMCModelResponse,
-        generate_pymc_model_prompt,
-        pymc_generation_system,
-    )
-
-    model_bot = lmb.StructuredBot(
-        system_prompt=pymc_generation_system(),
-        pydantic_model=PyMCModelResponse,
-        model_name="gpt-4o",
-    )
-
-    model_code = model_bot(generate_pymc_model_prompt(response.model_dump_json()))
-
+def _(generate_pymc_code, response):
+    # Step 1: Generate PyMC model code
+    print("Generating PyMC model code...")
+    model_code = generate_pymc_code(response)
+    print("✓ Model code generated")
     return (model_code,)
 
 
 @app.cell
-def _(model_code):
-    import marimo as mo
-
-    mo.md(model_code.dict()["description"])
-    return (mo,)
+def _(generate_pymc_description, model_code, response):
+    # Step 2: Generate model description
+    print("Generating model description...")
+    model_description = generate_pymc_description(response, model_code)
+    print("✓ Model description generated")
+    return (model_description,)
 
 
 @app.cell
+def _(model_description):
+    import marimo as mo
+
+    mo.md(model_description.description)
+    return (mo,)
+
+
+@app.cell(hide_code=True)
 def _(mo, model_code):
     mo.md(
         f"""
     ```python
-    {model_code.dict()["model_code"]}
+    {model_code.model_code}
     ```
     """
     )
@@ -131,110 +140,22 @@ def _(mo, model_code):
 
 @app.cell
 def _(model_code):
-    import io
-
-    import pandas as pd
-
-    data = pd.read_csv(io.StringIO(model_code.dict()["sample_data_csv"]))
-    data
-    return (data,)
+    print(model_code.generate_sample_data())
+    return
 
 
 @app.cell
-def _(data):
-    import numpy as np
-    import pymc as pm
-    import pytensor.tensor as pt
-
-    treatment_idx = data["treatment"].astype("category").cat.codes
-    cell_line_idx = data["cell_line"].astype("category").cat.codes
-    plate_idx = data["plate"].astype("category").cat.codes
-
-    # Define coordinates for the model
-    coords = {
-        "treatment": ["control", "growth factor A", "growth factor B"],
-        "cell_line": ["cell line 1", "cell line 2", "cell line 3", "cell line 4"],
-        "plate": ["plate 1", "plate 2", "plate 3", "plate 4", "plate 5", "plate 6"],
-        "variance_components": ["treatment", "cell_line", "plate"],
-        "obs": np.arange(len(data)),
-    }
-
-    with pm.Model(coords=coords) as model:
-        # 1. Measurement precision (unexplained variance)
-        sigma = pm.HalfNormal("sigma", sigma=1.0)
-
-        # 2. Model fit quality
-        # (proportion of variation explained by experimental factors)
-        r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
-
-        # 3. Total experimental effect strength (signal-to-noise ratio)
-        model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
-
-        # 4. Total explainable variance
-        W = pm.Deterministic("W", model_snr * sigma**2)
-
-        # 5. Variance proportions across components
-        phi = pm.Dirichlet("phi", a=np.array([40, 30, 30]), dims="variance_components")
-
-        # 6. Individual variance components
-        treatment_variance = pm.Deterministic("treatment_variance", phi[0] * W)
-        cell_line_variance = pm.Deterministic("cell_line_variance", phi[1] * W)
-        plate_variance = pm.Deterministic("plate_variance", phi[2] * W)
-
-        # 7. Individual treatment effects
-        treatment_effect = pm.Normal(
-            "treatment_effect",
-            mu=0,
-            sigma=pt.sqrt(treatment_variance),
-            dims="treatment",
-        )
-
-        # 8. Blocking factor effects
-        cell_line_effect = pm.Normal(
-            "cell_line_effect",
-            mu=0,
-            sigma=pt.sqrt(cell_line_variance),
-            dims="cell_line",
-        )
-
-        # 9. Nuisance factor effects
-        plate_effect = pm.Normal(
-            "plate_effect", mu=0, sigma=pt.sqrt(plate_variance), dims="plate"
-        )
-
-        # 10. Global intercept
-        mu = pm.Normal("mu", mu=0, sigma=10)
-
-        # 11. Predicted response using broadcasting
-        predicted_response = (
-            mu
-            + treatment_effect[treatment_idx]
-            + cell_line_effect[cell_line_idx]
-            + plate_effect[plate_idx]
-        )
-
-        # 12. Observed data
-        _ = pm.Normal(
-            "y",
-            mu=predicted_response,
-            sigma=sigma,
-            observed=data["response"],
-            dims="obs",
-        )
-
-    return model, pm
+def _():
+    return
 
 
 @app.cell
-def _(model, pm):
-    with model:
-        idata = pm.sample()
-    return (idata,)
+def _():
+    return
 
 
 @app.cell
-def _(idata):
-    idata.posterior.mean(dim=("chain", "draw"))
+def _():
     return
 
 
