@@ -6,11 +6,11 @@ When I first encountered the R2D2 (R²-induced Dirichlet Decomposition) framewor
 
 This post documents my journey understanding the progression from the basic R2D2 shrinkage prior to its sophisticated multilevel variant (R2D2M2), with stops along the way to explore generalized linear models. What emerged was a beautiful mathematical architecture where each extension builds naturally on the previous.
 
-## The Foundation: R2D2 Shrinkage Prior
+## The foundation: R2D2 shrinkage prior
 
 The journey begins with the elegant insight that motivated the original R2D2 framework: why not place a prior directly on the coefficient of determination (R²) rather than fumbling with individual coefficient priors? The challenge with individual coefficient priors isn't just knowing where to center them, but defining appropriate variance parameters - it's remarkably difficult to know a priori how much variability each coefficient should have.
 
-### The Core Mathematical Insight
+### The core mathematical insight
 
 For any model, R² represents the proportion of output variance that can be explained:
 
@@ -43,7 +43,7 @@ W = pm.Deterministic("W", r_squared / (1 - r_squared))
 
 As Zhang et al. note, "the induced prior density for W = R²/(1-R²) is a Beta Prime distribution ... denoted as BP(a,b)," giving us intuitive control over model fit through the familiar Beta hyperparameters.
 
-### Allocating Explained Variance: The Dirichlet Decomposition
+### Allocating explained variance: the Dirichlet decomposition
 
 But here's where R2D2 gets clever. Instead of requiring the modeler to manually specify variance parameters for each predictor's prior, it uses a **Dirichlet decomposition** to automatically allocate the total explained variance W across predictors:
 
@@ -62,7 +62,7 @@ This means `φⱼ × W = λⱼ` answers the question: *"What fraction of the tot
 
 As Zhang et al. describe, this creates adaptive behavior where "the heavy tail reduces the bias in estimation of large coefficients, while the high concentration around zero shrinks the irrelevant coefficients heavily to zero, thus reducing the noise" - factors that explain a lot of the output variance get allocated more of the total explained variance (larger λⱼ values), while factors that don't explain much output variance get allocated less explained variance (smaller λⱼ values).
 
-### The R2D2 Model
+### The R2D2 model
 
 Bringing these pieces together - the R² prior, the Dirichlet variance allocation, and the coefficient distributions - we get the R2D2 model:
 
@@ -89,11 +89,11 @@ with pm.Model(coords=coords) as model:
 
 The beauty of this approach lies in the competitive nature of the Dirichlet allocation: all predictors compete for the total explained variance W. If one predictor becomes more important (higher φⱼ), others must become less important. This creates natural sparsity and prevents overfitting.
 
-## First Extension: R2D2 for Generalized Linear Models
+## First extension: R2D2 for generalized linear models
 
 The first major challenge came when extending R2D2 to non-Gaussian outcomes. Yanchenko et al. (2021) tackled this problem by developing clever approximation methods that preserve the intuitive R² interpretation. The beautiful relationship `R² = W/(W+σ²)` that made everything work cleanly suddenly becomes complex when dealing with Poisson counts, binary outcomes, or other GLM families.
 
-### The Challenge: No More Simple σ²
+### The challenge: no more simple σ²
 
 In GLMs, the "noise" isn't a simple σ² anymore. Instead, we have:
 
@@ -103,7 +103,7 @@ In GLMs, the "noise" isn't a simple σ² anymore. Instead, we have:
 
 This breaks our clean R² = W/(W+σ²) relationship because now both the signal and noise are functions of the linear predictor η.
 
-### The Elegant Solution: Linear Approximation
+### The elegant solution: linear approximation
 
 The GLM extension uses a brilliant linear approximation approach. As Yanchenko et al. describe, "applying a first-order Taylor series approximation of μ(η) and σ²(η) around β₀" allows them to handle the GLM complexity. We approximate the complex GLM relationship around the intercept β₀:
 
@@ -117,7 +117,7 @@ Where `s²(β₀) = σ²(β₀)/[μ'(β₀)]²` is the "effective noise" for eac
 - **Poisson**: `s²(β₀) = e^{-β₀}` (depends on baseline rate)
 - **Logistic**: `s²(β₀) = μ(β₀)(1-μ(β₀))/[μ'(β₀)]²` (depends on baseline probability)
 
-### What This Achieves
+### What this achieves
 
 **The genius**: We keep all the interpretability and mathematical structure of the linear R2D2 case, but just compute a smarter "noise" term that respects the GLM family's variance structure.
 
@@ -143,11 +143,11 @@ with pm.Model(coords=coords) as model:
 
 The elegance of this approach becomes clear when we step back and see what's happening conceptually. We're essentially asking "what would σ² be if this GLM were actually a linear model?" and using that as our effective noise term. This preserves all the intuitive benefits of R2D2 while handling GLM complexity.
 
-## The Great Leap: R2D2M2 for Multilevel Models
+## The great leap: R2D2M2 for multilevel models
 
 The most sophisticated extension addresses the challenge of multilevel models with multiple grouping factors - the kind of complex experimental designs common in laboratory research. Aguilar & Bürkner (2022) developed the R2D2M2 prior to handle this complexity while preserving the intuitive variance decomposition interpretation.
 
-### The Multilevel Challenge
+### The multilevel challenge
 
 Consider a laboratory experiment with:
 
@@ -167,7 +167,7 @@ stress_effects ~ Normal(0, λ_stress²)
 
 **The problem**: As you add more predictors and grouping factors, the implied R² prior becomes increasingly concentrated near 1 (the maximum possible R² value). This happens because each additional effect adds its own independent variance contribution, causing the total expected explained variance to grow without bound, leading to overfitting-prone models that expect near-perfect fit a priori.
 
-### The R2D2M2 Solution: Type-Level Variance Allocation
+### The R2D2M2 solution: type-level variance allocation
 
 The key insight from Aguilar & Bürkner is that R2D2M2 extends the Dirichlet decomposition to handle multiple **types** of effects while preserving hierarchical pooling:
 
@@ -188,7 +188,7 @@ component_names = [
 
 The key innovation here is subtle but powerful: instead of allocating variance to individual groups (Mouse 1, Mouse 2, etc.), we allocate variance to **types** of effects. All mice share one variance prior, all microRNAs share another, etc.
 
-### The Complete R2D2M2 Framework
+### The complete R2D2M2 framework
 
 Let's see how this all comes together in practice. The R2D2M2 model combines the R² prior, the extended Dirichlet allocation, and the hierarchical variance structure:
 
@@ -229,7 +229,7 @@ with pm.Model(coords=coords) as model:
 
 Now that we've seen the mathematical structure, let's understand what makes this approach so effective.
 
-### Why This Works So Well
+### Why this works so well
 
 **Hierarchical pooling preserved**: Individual mice still borrow strength from each other because they share the same variance component. Mouse A and Mouse B both use `mouse_scale`, but have different intercept values.
 
@@ -237,7 +237,7 @@ Now that we've seen the mathematical structure, let's understand what makes this
 
 **Scalable complexity**: Works with any number of crossed or nested grouping factors without parameter explosion.
 
-## The Unified Architecture
+## The unified architecture
 
 What strikes me most about this progression is how each extension elegantly handles new complexity:
 
@@ -245,7 +245,7 @@ All three approaches maintain **consistent R² control**, letting you directly s
 
 The mathematical elegance is striking: each extension modifies just what needs to change. The GLM extension changes the noise term (σ² → s²(β₀)), while the M2 extension extends the allocation to multiple effect types. Finally, all approaches provide the same practical benefits - automatic shrinkage, sparsity induction, and protection against overfitting while maintaining computational tractability.
 
-## When to Use What
+## When to use what
 
 Given these unified principles, how do you choose which approach fits your specific modeling scenario? Through this exploration, clear use cases emerged:
 
@@ -255,7 +255,7 @@ Given these unified principles, how do you choose which approach fits your speci
 | **R2D2 GLM** | Non-Gaussian outcomes with simple structure | Bacterial counts, binary outcomes, rate data |
 | **R2D2M2** | Complex laboratory designs with multiple grouping factors (**the laboratory default**) | Laboratory experiments with mouse ID + microRNA ID + stress condition |
 
-## Looking Forward
+## Looking forward
 
 R2D2 solves a common frustration in Bayesian modeling: how do you set reasonable priors on dozens of coefficients without spending hours tweaking hyperparameters? Instead of guessing at individual coefficient priors, you specify one intuitive parameter - how much of the data variation you expect your model to explain - and R2D2 automatically figures out how to distribute that explanatory power across your predictors.
 
