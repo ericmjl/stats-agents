@@ -2,7 +2,7 @@
 
 *A journey through R2D2 Shrinkage, GLM, and M2 variants for Bayesian regularization*
 
-When I first encountered the R2D2 (R²-induced Dirichlet Decomposition) framework (Zhang et al., 2022), I was struck by its intuitive approach to Bayesian regularization. Instead of placing priors on individual regression coefficients and hoping for the best, R2D2 lets you directly specify your beliefs about how much variance the model should explain. But what really fascinated me was how the framework elegantly extends from simple linear regression to complex multilevel models through a series of principled modifications.
+When I first encountered the R2D2 (R²-induced Dirichlet Decomposition) framework (Zhang et al., 2020), I was struck by its intuitive approach to Bayesian regularization. Instead of placing priors on individual regression coefficients and hoping for the best, R2D2 lets you directly specify your beliefs about how much variance the model should explain. But what really fascinated me was how the framework elegantly extends from simple linear regression to complex multilevel models through a series of principled modifications.
 
 This post documents my journey understanding the progression from the basic R2D2 shrinkage prior to its sophisticated multilevel variant (R2D2M2), with stops along the way to explore generalized linear models. What emerged was a beautiful mathematical architecture where each extension builds naturally on the previous.
 
@@ -145,7 +145,7 @@ The elegance of this approach becomes clear when we step back and see what's hap
 
 ## The Great Leap: R2D2M2 for Multilevel Models
 
-The most sophisticated extension addresses the challenge of multilevel models with multiple grouping factors - the kind of complex experimental designs common in laboratory research. Aguilar & Bürkner (2023) developed the R2D2M2 prior to handle this complexity while preserving the intuitive variance decomposition interpretation.
+The most sophisticated extension addresses the challenge of multilevel models with multiple grouping factors - the kind of complex experimental designs common in laboratory research. Aguilar & Bürkner (2022) developed the R2D2M2 prior to handle this complexity while preserving the intuitive variance decomposition interpretation.
 
 ### The Multilevel Challenge
 
@@ -265,7 +265,7 @@ This practical approach - starting with an intuitive question about model fit an
 
 ## References
 
-**Zhang, Y. D., Naughton, B. P., Bondell, H. D., & Reich, B. J.** (2022). Bayesian Regression Using a Prior on the Model Fit: The R2-D2 Shrinkage Prior. *Journal of the American Statistical Association*, 117(538), 862-874. https://www.tandfonline.com/doi/full/10.1080/01621459.2020.1825449
+**Zhang, Y. D., Naughton, B. P., Bondell, H. D., & Reich, B. J.** (2020). Bayesian Regression Using a Prior on the Model Fit: The R2-D2 Shrinkage Prior. *Journal of the American Statistical Association*, 117(538), 862-874. https://www.tandfonline.com/doi/full/10.1080/01621459.2020.1825449
 
 **Yanchenko, E., Bondell, H. D., & Reich, B. J.** (2021). The R2D2 Prior for Generalized Linear Mixed Models. *arXiv preprint arXiv:2111.10718*. https://arxiv.org/abs/2111.10718
 
