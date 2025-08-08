@@ -49,6 +49,26 @@ class FactorType(str, Enum):
     REPLICATE = "replicate"  # Technical or biological replicates
 
 
+class InteractionType(str, Enum):
+    """Types of scientific interactions."""
+
+    GENE_GENE = "gene_gene"  # Gene-gene interactions (epistasis, genetic interactions)
+    PROTEIN_RNA = (
+        "protein_rna"  # Protein-RNA interactions (translation regulation, splicing)
+    )
+    PROTEIN_DNA = (
+        "protein_dna"  # Protein-DNA interactions (transcription regulation, chromatin)
+    )
+    CELL_CELL = "cell_cell"  # Cell-cell interactions (signaling, adhesion)
+    DRUG_TARGET = (
+        "drug_target"  # Drug-target interactions (pharmacology, drug response)
+    )
+    ENVIRONMENT_GENE = "environment_gene"  # Environment-gene interactions (GxE)
+    TIME_TREATMENT = "time_treatment"  # Time-treatment interactions (temporal effects)
+    DOSE_RESPONSE = "dose_response"  # Dose-response interactions (nonlinear effects)
+    OTHER = "other"  # Other scientific interactions
+
+
 class ExperimentalFactor(BaseModel):
     """Represents a single experimental factor."""
 
@@ -94,6 +114,36 @@ class ReplicateStructure(BaseModel):
     )
 
 
+class PotentialInteraction(BaseModel):
+    """Describes a potential interaction between experimental factors based on scientific knowledge."""  # noqa: E501
+
+    factor1: str = Field(..., description="Name of the first factor in the interaction")
+    factor2: str = Field(
+        ..., description="Name of the second factor in the interaction"
+    )
+    interaction_type: InteractionType = Field(
+        ..., description="Type of scientific interaction"
+    )
+    scientific_justification: str = Field(
+        ...,
+        description="Scientific justification for why this interaction might be important",  # noqa: E501
+    )
+    biological_mechanism: Optional[str] = Field(
+        None, description="Biological mechanism underlying the potential interaction"
+    )
+    evidence_strength: str = Field(
+        default="moderate",
+        description="Strength of evidence for this interaction (weak, moderate, strong)",  # noqa: E501
+    )
+    should_include: bool = Field(
+        default=True,
+        description="Whether this interaction should be included in the statistical model",  # noqa: E501
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes about the interaction"
+    )
+
+
 class ExperimentDescription(BaseModel):
     """
     Basic experiment description focused on PyMC model construction.
@@ -124,6 +174,12 @@ class ExperimentDescription(BaseModel):
     # Replicate structure
     replicate_structure: Optional[ReplicateStructure] = Field(
         None, description="How replicates are structured in the experiment"
+    )
+
+    # Potential interactions based on scientific knowledge
+    potential_interactions: List[PotentialInteraction] = Field(
+        default_factory=list,
+        description="Potential interactions between factors based on general scientific knowledge",  # noqa: E501
     )
 
     # Additional context
@@ -172,6 +228,40 @@ class ExperimentDescription(BaseModel):
                 replicate_factors[factor.name] = factor.levels
         return replicate_factors
 
+    def get_treatment_factors(self) -> List[str]:
+        """Get names of treatment factors."""
+        return [
+            factor.name
+            for factor in self.factors
+            if factor.factor_type == FactorType.TREATMENT
+        ]
+
+    def get_interaction_terms(self) -> List[PotentialInteraction]:
+        """Get interaction terms that should be included in the model."""
+        return [
+            interaction
+            for interaction in self.potential_interactions
+            if interaction.should_include
+        ]
+
+    def get_interaction_coords(self) -> Dict[str, Any]:
+        """Generate PyMC coordinates for interaction terms."""
+        coords = {}
+        for interaction in self.get_interaction_terms():
+            # Create coordinate for the interaction term
+            factor1_levels = next(
+                f.levels for f in self.factors if f.name == interaction.factor1
+            )
+            factor2_levels = next(
+                f.levels for f in self.factors if f.name == interaction.factor2
+            )
+            coords[f"{interaction.factor1}_{interaction.factor2}_interaction"] = [
+                f"{level1}_{level2}"
+                for level1 in factor1_levels
+                for level2 in factor2_levels
+            ]
+        return coords
+
     def get_pymc_coords(self) -> Dict[str, Any]:
         """
         Generate PyMC coordinates dictionary.
@@ -195,6 +285,10 @@ class ExperimentDescription(BaseModel):
         # Add time coordinates
         if self.timepoints:
             coords["timepoint"] = self.timepoints
+
+        # Add interaction coordinates
+        interaction_coords = self.get_interaction_coords()
+        coords.update(interaction_coords)
 
         return coords
 
@@ -232,6 +326,12 @@ class ExperimentDescription(BaseModel):
         # Time effect dimensions
         if self.timepoints:
             dims["timepoint_effect"] = ["timepoint"]
+
+        # Interaction effect dimensions
+        for interaction in self.get_interaction_terms():
+            dims[f"{interaction.factor1}_{interaction.factor2}_interaction"] = [
+                f"{interaction.factor1}_{interaction.factor2}_interaction"
+            ]
 
         return dims
 
@@ -308,11 +408,52 @@ class ExperimentDescription(BaseModel):
             )
             component_names.append("timepoint_effect")
 
+        # Add interaction components
+        for interaction in self.get_interaction_terms():
+            components.append(
+                {
+                    "name": f"{interaction.factor1}_{interaction.factor2}_interaction",
+                    "type": "interaction",
+                    "dim": f"{interaction.factor1}_{interaction.factor2}_interaction",
+                    "levels": None,  # Will be determined from factor combinations
+                    "interaction_type": interaction.interaction_type.value,
+                    "scientific_justification": interaction.scientific_justification,
+                }
+            )
+            component_names.append(
+                f"{interaction.factor1}_{interaction.factor2}_interaction"
+            )
+
         return {
             "n_components": len(components),
             "components": components,
             "component_names": component_names,
         }
+
+    def with_interactions_enabled(
+        self, enabled: bool = True
+    ) -> "ExperimentDescription":
+        """
+        Create a copy of the experiment with interactions enabled or disabled.
+
+        Args:
+            enabled: Whether to enable interactions
+
+        Returns:
+            A new ExperimentDescription with interactions toggled
+        """
+        experiment_copy = self.model_copy(deep=True)
+        for interaction in experiment_copy.potential_interactions:
+            interaction.should_include = enabled
+        return experiment_copy
+
+    def enable_interactions(self) -> "ExperimentDescription":
+        """Enable all interactions in the experiment."""
+        return self.with_interactions_enabled(True)
+
+    def disable_interactions(self) -> "ExperimentDescription":
+        """Disable all interactions in the experiment."""
+        return self.with_interactions_enabled(False)
 
 
 class ExperimentSummary(BaseModel):

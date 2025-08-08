@@ -24,11 +24,6 @@ app = marimo.App(width="full")
 
 @app.cell
 def _():
-    return
-
-
-@app.cell
-def _():
     from stats_agents.experiment_parser import experiment_bot
 
     return (experiment_bot,)
@@ -140,12 +135,23 @@ def _(mo, model_code):
 
 @app.cell
 def _(model_code):
-    print(model_code.generate_sample_data())
+    import io
+
+    sample_data = model_code.generate_sample_data()
+    return io, sample_data
+
+
+@app.cell
+def _(sample_data):
+    sample_data
     return
 
 
 @app.cell
-def _():
+def _(io, sample_data):
+    import pandas as pd
+
+    pd.read_csv(io.StringIO(sample_data))
     return
 
 

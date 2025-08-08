@@ -19,6 +19,7 @@ def experiment_parsing_system():
     - Experimental units
     - Timepoints for longitudinal data
     - Replicate structure (technical or biological replicates)
+    - Potential interactions based on scientific knowledge
     - Experimental aims
 
     For factor types:
@@ -38,12 +39,65 @@ def experiment_parsing_system():
       - nested_under: what the replicates are nested under (e.g., "plate", "mouse", "treatment")
       - description: a clear description of the replicate structure
 
+    **CRITICAL: Identify potential interactions based on scientific knowledge:**
+    After identifying all factors, analyze potential interactions between treatment factors based on general scientific knowledge:
+
+    **Gene-Gene Interactions (GENE_GENE):**
+    - When multiple genes or genetic factors are present
+    - Examples: gene knockout + gene overexpression, different genetic backgrounds, genotype combinations
+    - Justification: Genes often interact through epistasis, genetic networks, or compensatory mechanisms
+
+    **Protein-RNA Interactions (PROTEIN_RNA):**
+    - When protein factors and RNA/mRNA factors are present
+    - Examples: transcription factor + target gene, protein + mRNA stability, splicing factor + RNA
+    - Justification: Proteins regulate RNA processing, stability, and translation
+
+    **Protein-DNA Interactions (PROTEIN_DNA):**
+    - When protein factors and DNA/chromatin factors are present
+    - Examples: transcription factor + promoter, chromatin modifier + DNA sequence, protein + DNA binding
+    - Justification: Proteins bind to DNA to regulate transcription and chromatin structure
+
+    **Cell-Cell Interactions (CELL_CELL):**
+    - When different cell types or cell populations are present
+    - Examples: immune cells + target cells, different cell lines, co-culture conditions
+    - Justification: Cells communicate through signaling, adhesion, and paracrine effects
+
+    **Drug-Target Interactions (DRUG_TARGET):**
+    - When drugs and their targets or pathways are present
+    - Examples: drug + target protein, drug + genetic background, drug + cell type
+    - Justification: Drug effects often depend on target expression and genetic context
+
+    **Environment-Gene Interactions (ENVIRONMENT_GENE):**
+    - When environmental factors and genetic factors are present
+    - Examples: temperature + genotype, nutrient + genetic background, stress + gene expression
+    - Justification: Environmental conditions can modulate genetic effects
+
+    **Time-Treatment Interactions (TIME_TREATMENT):**
+    - When timepoints and treatments are present
+    - Examples: treatment effects that change over time, temporal response patterns
+    - Justification: Treatment effects often have temporal dynamics
+
+    **Dose-Response Interactions (DOSE_RESPONSE):**
+    - When dose/concentration and other factors are present
+    - Examples: dose + genetic background, dose + cell type, concentration + time
+    - Justification: Dose effects often depend on other experimental conditions
+
+    **Guidelines for including interactions:**
+    1. Only include interactions between TREATMENT factors (not nuisance factors)
+    2. Focus on biologically plausible interactions
+    3. Provide clear scientific justification
+    4. Set evidence_strength based on biological plausibility:
+       - "strong": Well-established biological mechanisms (e.g., transcription factor + target gene)
+       - "moderate": Likely but not guaranteed interactions (e.g., drug + genetic background)
+       - "weak": Possible but speculative interactions
+    5. Only include interactions that are justifiable based on the experimental context
+
     **Example replicate detection:**
     - "3 technical replicates per plate" → ReplicateStructure(replicate_type="technical", replicates_per_unit=3, nested_under="plate")
     - "4 biological replicates per treatment" → ReplicateStructure(replicate_type="biological", replicates_per_unit=4, nested_under="treatment")
     - "Each condition was replicated 5 times" → ReplicateStructure(replicate_type="technical", replicates_per_unit=5, nested_under="condition")
 
-    Return a complete ExperimentDescription with all fields properly populated, including replicate structure when present."""  # noqa: E501
+    Return a complete ExperimentDescription with all fields properly populated, including replicate structure and potential interactions when present."""  # noqa: E501
 
 
 def create_experiment_parser_bot(model_name: str = "gpt-4o") -> lmb.StructuredBot:

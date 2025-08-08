@@ -810,6 +810,10 @@ def pymc_code_generation_system():
     19. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
     20. **SAFE CSV HANDLING: Always include try-except blocks when loading CSV files and provide fallback data generation**
     21. **USE MEMO.GRID: Always use `from memo import grid` and the `grid()` function to generate all combinations of experimental factors in fallback data generation**
+    22. **INTERACTION TERMS: Include scientifically justified interactions between treatment factors based on the experiment description**
+    23. **INTERACTION VARIANCE: Allocate appropriate variance to interaction terms in the Dirichlet distribution (typically 10-20%)**
+    24. **INTERACTION INDEXING: Use proper indexing for interaction terms in the predicted response**
+    25. **INTERACTION COORDINATES: Include interaction coordinates in the PyMC coordinates dictionary**
     """  # noqa: E501
 
 
@@ -935,6 +939,7 @@ def generate_pymc_model_prompt(experiment_json: str):
        - Handles all factor types correctly
        - Includes proper variance component allocation
        - Uses appropriate likelihood based on response type
+       - Includes scientifically justified interaction terms between treatment factors
     3. A realistic sample data table in CSV format that:
        - Includes all experimental factors and treatment levels
        - Contains the response variable with realistic values
@@ -947,6 +952,7 @@ def generate_pymc_model_prompt(experiment_json: str):
     - Provide concrete interpretation examples (e.g., "if the PBS coefficient is positive, PBS increases encapsulation efficiency")
     - Give prescriptive guidance on what the results mean for experimental decisions
     - Use the actual response variable name and units when available
+    - Explain any interaction terms and their biological significance
 
     Make the description specific to this experiment, not generic. Include actual factor names and treatment levels.
     Focus on practical interpretation that helps the experimenter make decisions.
@@ -967,11 +973,15 @@ def generate_pymc_code_prompt(experiment_json: str):
     - Handles all factor types correctly
     - Includes proper variance component allocation
     - Uses appropriate likelihood based on response type
+    - Includes scientifically justified interaction terms between treatment factors (if any are marked as should_include=True)
     - Includes data loading and preprocessing code
     - Adds helpful comments explaining the experimental structure
     - Uses accessible variable names that relate to the experiment
     - Uses vectorized operations and broadcasting instead of loops
     - Makes model structure explicit and readable
+
+    Note: Only include interaction terms that have should_include=True in the experiment description.
+    If no interactions are marked for inclusion, generate a model without interaction terms.
     """  # noqa: E501
 
 
@@ -991,8 +1001,12 @@ def generate_pymc_description_prompt(experiment_json: str, model_code: str):
     - Provides concrete interpretation examples (e.g., "if the PBS coefficient is positive, PBS increases encapsulation efficiency")
     - Gives prescriptive guidance on what the results mean for experimental decisions
     - Uses the actual response variable name and units when available
+    - Explains any interaction terms and their biological significance (if included in the model)
     - Makes the description specific to this experiment, not generic
     - Focuses on practical interpretation that helps the experimenter make decisions
+
+    Note: Only describe interaction terms that are actually included in the model code.
+    If no interactions are present in the model, do not mention them in the description.
     """  # noqa: E501
 
 
@@ -1050,9 +1064,22 @@ pymc_model_bot = lmb.StructuredBot(
 def generate_pymc_code(
     experiment: ExperimentDescription,
     model_name: str = "gpt-4o",
+    include_interactions: bool = True,
 ) -> PyMCModelCode:
-    """Generate PyMC model code for an experiment description."""
-    experiment_json = experiment.model_dump_json(indent=2)
+    """Generate PyMC model code for an experiment description.
+
+    Args:
+        experiment: The experiment description
+        model_name: The LLM model to use for generation
+        include_interactions: Whether to include interaction terms in the model
+    """
+    # Create a copy of the experiment with interactions toggled
+    if not include_interactions:
+        experiment_copy = experiment.disable_interactions()
+    else:
+        experiment_copy = experiment.enable_interactions()
+
+    experiment_json = experiment_copy.model_dump_json(indent=2)
     response = pymc_code_bot(generate_pymc_code_prompt(experiment_json))
     return response
 
@@ -1061,9 +1088,23 @@ def generate_pymc_description(
     experiment: ExperimentDescription,
     model_code: PyMCModelCode,
     model_name: str = "gpt-4o",
+    include_interactions: bool = True,
 ) -> PyMCModelDescription:
-    """Generate PyMC model description for an experiment and model code."""
-    experiment_json = experiment.model_dump_json(indent=2)
+    """Generate PyMC model description for an experiment and model code.
+
+    Args:
+        experiment: The experiment description
+        model_code: The generated PyMC model code
+        model_name: The LLM model to use for generation
+        include_interactions: Whether interactions were included in the model
+    """
+    # Create a copy of the experiment with interactions toggled
+    if not include_interactions:
+        experiment_copy = experiment.disable_interactions()
+    else:
+        experiment_copy = experiment.enable_interactions()
+
+    experiment_json = experiment_copy.model_dump_json(indent=2)
     response = pymc_description_bot(
         generate_pymc_description_prompt(experiment_json, model_code.model_code)
     )
@@ -1084,10 +1125,22 @@ def generate_pymc_sample_data(
 def generate_pymc_model(
     experiment: ExperimentDescription,
     model_name: str = "gpt-4o",
+    include_interactions: bool = True,
 ) -> PyMCModelResponse:
-    """Generate PyMC model code for an experiment description."""
-    # Convert experiment to JSON
-    experiment_json = experiment.model_dump_json(indent=2)
+    """Generate PyMC model code for an experiment description.
+
+    Args:
+        experiment: The experiment description
+        model_name: The LLM model to use for generation
+        include_interactions: Whether to include interaction terms in the model
+    """
+    # Create a copy of the experiment with interactions toggled
+    if not include_interactions:
+        experiment_copy = experiment.disable_interactions()
+    else:
+        experiment_copy = experiment.enable_interactions()
+
+    experiment_json = experiment_copy.model_dump_json(indent=2)
 
     # Use the user prompt with the experiment JSON
     response = pymc_model_bot(generate_pymc_model_prompt(experiment_json))
