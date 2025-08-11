@@ -541,29 +541,27 @@ def pymc_generation_system():
     - Add appropriate units in column names if helpful (e.g., "concentration_uM", "time_hours")
 
     Key requirements:
-    1. Generate complete, runnable PyMC code
+    1. Generate a `def model():` function template only - no data loading code
     2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
     3. Create separate coefficients for each treatment level with proper dimensions
     4. Handle different factor types with appropriate priors
     5. Generate comprehensive PyMC coordinates and use dims extensively
-    6. Include data loading and preprocessing code
-    7. Add helpful comments explaining the experimental structure
-    8. Use accessible variable names that relate to the experiment
-    9. Generate a description that names specific experimental factors and treatment levels
-    10. Provide concrete interpretation examples using actual factor names
-    11. Use vectorized operations and broadcasting instead of loops
-    12. Make model structure explicit and readable
-    13. Generate realistic sample data CSV with appropriate volume and value ranges
-    14. Include all experimental factors and response variables in the sample data
-    15. Use logit transform for proportions/percentages and model in Gaussian space
-    16. Implement sigmoidal/saturation curves when specified by collaborators
-    17. Use appropriate parameterizations and priors for nonlinear relationships
-    18. **ALWAYS include "variance_components" coordinate that lists the effects in the phi parameter**
-    19. **The phi parameter MUST have dims="variance_components" for interpretability**
-    20. **Distinguish between technical replicates (Case 1) and replicates with systematic differences (Case 2)**
-    21. **Case 1 (technical replicates): Do NOT include replicate effects or variance in Dirichlet allocation**
-    22. **Case 2 (systematic differences): DO include replicate effects with nested dims and variance in Dirichlet allocation**
-    23. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
+    6. Add helpful comments explaining the experimental structure
+    7. Use accessible variable names that relate to the experiment
+    8. Generate a description that names specific experimental factors and treatment levels
+    9. Provide concrete interpretation examples using actual factor names
+    10. Use vectorized operations and broadcasting instead of loops
+    11. Make model structure explicit and readable
+    12. Use logit transform for proportions/percentages and model in Gaussian space
+    13. Implement sigmoidal/saturation curves when specified by collaborators
+    14. Use appropriate parameterizations and priors for nonlinear relationships
+    15. **ALWAYS include "variance_components" coordinate that lists the effects in the phi parameter**
+    16. **The phi parameter MUST have dims="variance_components" for interpretability**
+    17. **Distinguish between technical replicates (Case 1) and replicates with systematic differences (Case 2)**
+    18. **Case 1 (technical replicates): Do NOT include replicate effects or variance in Dirichlet allocation**
+    19. **Case 2 (systematic differences): DO include replicate effects with nested dims and variance in Dirichlet allocation**
+    20. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
+    21. **Generate ONLY the model function - assume data variables are already available in scope**
     """  # noqa: E501
 
 
@@ -730,90 +728,80 @@ def pymc_code_generation_system():
     - If Case 2: Add replicate variance component to Dirichlet allocation
     - If Case 1: Do NOT include replicate variance
 
-    **STEP 3: Generate proper indexing**
-    ```python
-    # Always use .values for indexing
-    treatment_idx = data['treatment'].astype('category').cat.codes
-    plate_idx = data['plate'].astype('category').cat.codes  # unit for nesting
-    replicate_idx = data['replicate'].astype('category').cat.codes
-    ```
+     **STEP 3: Generate proper indexing**
+     ```python
+     # Assume indexing variables are already available in scope:
+     # treatment_idx, plate_idx, replicate_idx, etc.
+     ```
 
-    **STEP 4: Include global intercept**
-    ```python
-    # Always include baseline/intercept
-    mu = pm.Normal("mu", mu=0, sigma=10)
-    ```
+     **STEP 4: Include global intercept**
+     ```python
+     # Always include baseline/intercept
+     mu = pm.Normal("mu", mu=0, sigma=10)
+     ```
 
-        **STEP 5: Safe CSV Data Loading**
-    Always include safe CSV handling with fallback data generation:
-    ```python
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    from memo import grid
+     **TEMPLATE: Generate only the model function**
+     ```python
+     def model():
+         \"\"\"PyMC model for [experiment_name].\"\"\"
 
-    # Try to load the CSV file, with fallback data generation
-    try:
-        data = pd.read_csv("experiment_data.csv")
-        print("✓ Loaded data from CSV file")
-    except FileNotFoundError:
-        print("⚠ CSV file not found, generating sample data...")
-        # Generate sample data based on the experiment structure
-        # This ensures the model can run even without the CSV file
-        treatments = ["control", "treatment_A", "treatment_B"]
-        plates = ["plate_1", "plate_2", "plate_3"]
-        replicates = ["rep_1", "rep_2", "rep_3"]
+         # Assume coords dictionary and indexing variables are already available
 
-        # Create all combinations using memo.grid
-        settings = grid(
-            treatment=treatments,
-            plate=plates,
-            replicate=replicates,
-            shuffle=False
-        )
+         with pm.Model(coords=coords) as model:
+             # 1. Measurement precision (unexplained variance)
+             sigma = pm.HalfNormal("sigma", sigma=1.0)
 
-        # Convert to DataFrame and add response variable
-        data = pd.DataFrame(settings)
-        data["response"] = np.random.normal(100, 20, len(data))  # Sample response values
+             # 2. Model fit quality (proportion of variation explained by experimental factors)
+             r_squared = pm.Beta("r_squared", alpha=2, beta=2)
 
-        print("✓ Generated sample data using memo.grid")
-    except Exception as e:
-        print(f"⚠ Error loading CSV: {e}, generating sample data...")
-        # Additional fallback with minimal data
-        data = pd.DataFrame({
-            "treatment": ["control", "treatment_A"] * 3,
-            "plate": ["plate_1", "plate_2"] * 3,
-            "response": np.random.normal(100, 20, 6)
-        })
-        print("✓ Generated minimal fallback data")
-    ```
+             # 3. Total experimental effect strength (signal-to-noise ratio)
+             model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
+
+             # 4. Total explainable variance
+             W = pm.Deterministic("W", model_snr * sigma**2)
+
+             # 5. Variance proportions across components
+             phi = pm.Dirichlet("phi", a=np.array([...]), dims="variance_components")
+
+             # 6-N. Individual variance components and effects
+             # ... model structure here ...
+
+             # Global intercept
+             mu = pm.Normal("mu", mu=0, sigma=10)
+
+             # Predicted response
+             predicted_response = (...)  # Define based on experiment
+
+             # Observed data (assume y_data and obs dimension already available)
+             y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
+
+         return model
+     ```
 
     Key requirements:
-    1. Generate complete, runnable PyMC code
+    1. Generate a `def model():` function template only - no data loading code
     2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
     3. Create separate coefficients for each treatment level with proper dimensions
     4. Handle different factor types with appropriate priors
     5. Generate comprehensive PyMC coordinates and use dims extensively
-    6. Include data loading and preprocessing code with safe CSV handling
-    7. Add helpful comments explaining the experimental structure
-    8. Use accessible variable names that relate to the experiment
-    9. Use vectorized operations and broadcasting instead of loops
-    10. Make model structure explicit and readable
-    11. Use logit transform for proportions/percentages and model in Gaussian space
-    12. Implement sigmoidal/saturation curves when specified by collaborators
-    13. Use appropriate parameterizations and priors for nonlinear relationships
-    14. **ALWAYS include "variance_components" coordinate that lists the effects in the phi parameter**
-    15. **The phi parameter MUST have dims="variance_components" for interpretability**
-    16. **Distinguish between technical replicates (Case 1) and replicates with systematic differences (Case 2)**
-    17. **Case 1 (technical replicates): Do NOT include replicate effects or variance in Dirichlet allocation**
-    18. **Case 2 (systematic differences): DO include replicate effects with nested dims and variance in Dirichlet allocation**
-    19. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
-    20. **SAFE CSV HANDLING: Always include try-except blocks when loading CSV files and provide fallback data generation**
-    21. **USE MEMO.GRID: Always use `from memo import grid` and the `grid()` function to generate all combinations of experimental factors in fallback data generation**
-    22. **INTERACTION TERMS: Include scientifically justified interactions between treatment factors based on the experiment description**
-    23. **INTERACTION VARIANCE: Allocate appropriate variance to interaction terms in the Dirichlet distribution (typically 10-20%)**
-    24. **INTERACTION INDEXING: Use proper indexing for interaction terms in the predicted response**
-    25. **INTERACTION COORDINATES: Include interaction coordinates in the PyMC coordinates dictionary**
+    6. Add helpful comments explaining the experimental structure
+    7. Use accessible variable names that relate to the experiment
+    8. Use vectorized operations and broadcasting instead of loops
+    9. Make model structure explicit and readable
+    10. Use logit transform for proportions/percentages and model in Gaussian space
+    11. Implement sigmoidal/saturation curves when specified by collaborators
+    12. Use appropriate parameterizations and priors for nonlinear relationships
+    13. **ALWAYS include "variance_components" coordinate that lists the effects in the phi parameter**
+    14. **The phi parameter MUST have dims="variance_components" for interpretability**
+    15. **Distinguish between technical replicates (Case 1) and replicates with systematic differences (Case 2)**
+    16. **Case 1 (technical replicates): Do NOT include replicate effects or variance in Dirichlet allocation**
+    17. **Case 2 (systematic differences): DO include replicate effects with nested dims and variance in Dirichlet allocation**
+    18. **Look for phrases like "each replicate has its own starting value" to identify Case 2**
+    19. **Generate ONLY the model function - assume data variables are already available in scope**
+    20. **INTERACTION TERMS: Include scientifically justified interactions between treatment factors based on the experiment description**
+    21. **INTERACTION VARIANCE: Allocate appropriate variance to interaction terms in the Dirichlet distribution (typically 10-20%)**
+    22. **INTERACTION INDEXING: Use proper indexing for interaction terms in the predicted response**
+    23. **INTERACTION COORDINATES: Include interaction coordinates in the PyMC coordinates dictionary**
     """  # noqa: E501
 
 
@@ -966,19 +954,22 @@ def generate_pymc_code_prompt(experiment_json: str):
     Experiment Description (JSON):
     {{ experiment_json }}
 
-    Please generate complete, runnable PyMC code that:
-    - Loads the data
+    Please generate a `def model():` function that:
     - Sets up appropriate coordinates and dimensions
     - Implements the R2D2 framework based on the experiment structure
     - Handles all factor types correctly
     - Includes proper variance component allocation
     - Uses appropriate likelihood based on response type
     - Includes scientifically justified interaction terms between treatment factors (if any are marked as should_include=True)
-    - Includes data loading and preprocessing code
     - Adds helpful comments explaining the experimental structure
     - Uses accessible variable names that relate to the experiment
     - Uses vectorized operations and broadcasting instead of loops
     - Makes model structure explicit and readable
+
+    IMPORTANT: Generate ONLY the model function definition. Assume that:
+    - All necessary imports are already available
+    - Data variables (coords, indexing variables, y_data) are already in scope
+    - The function should return the PyMC model object
 
     Note: Only include interaction terms that have should_include=True in the experiment description.
     If no interactions are marked for inclusion, generate a model without interaction terms.
