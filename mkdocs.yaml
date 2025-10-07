@@ -13,8 +13,18 @@ theme:
     - tabs
   language: en
 
-# We customize the navigation by hand to control the order
-# in which pages show up.
+# Navigation structure
+nav:
+  - Home: index.md
+
+  - API Reference: api.md
+  - R2D2 Framework:
+    - Overview: r2d2m2_summary.md
+    - GLM Variant: r2d2_glm_summary.md
+    - Shrinkage Variant: r2d2_shrinkage_summary.md
+  - Design:
+    - Requirements: design/requirements.md
+  - Blog: blog.md
 
 plugins:
   - search
