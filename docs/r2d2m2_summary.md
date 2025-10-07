@@ -138,7 +138,7 @@ def r2d2m2_model(X, y, groups=None, r2_mean=0.5, r2_precision=2,
     Parameters:
     -----------
     X : array-like, shape (n, p)
-        Fixed effects design matrix (should be standardized)
+        Fixed effects design matrix (standardization recommended for interpretability)
     y : array-like, shape (n,)
         Response vector
     groups : dict, optional
@@ -211,9 +211,10 @@ def r2d2m2_model(X, y, groups=None, r2_mean=0.5, r2_precision=2,
 
         sigma_squared = pm.Deterministic("sigma_squared", sigma**2)
 
-        # Compute predictor standard deviations (assumed standardized, so = 1)
-        # In practice, would use empirical standard deviations
-        sigma_x = np.ones(p)
+        # Compute predictor standard deviations
+        # If predictors are standardized, sigma_x = 1 for all predictors
+        # Otherwise, use empirical standard deviations: sigma_x = np.std(X, axis=0)
+        sigma_x = np.ones(p)  # Assumes standardized predictors
 
         # Population-level effects
         component_idx = 0
@@ -583,7 +584,7 @@ def r2d2m2_laboratory_data(X, y, mouse_ids, microRNA_ids, stress_conditions,
 
 ### Computational Considerations
 
-- **Standardization**: Predictors should be centered and scaled
+- **Standardization**: Predictors can be standardized for interpretability, but it's not required
 - **Initialization**: May require careful initialization for complex models
 - **Sampling**: Use target_accept ≥ 0.9 for better exploration
 - **Identification**: Group-specific intercepts and overall intercept can be confounded
