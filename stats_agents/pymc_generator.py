@@ -226,7 +226,7 @@ def pymc_generation_system():
         )
 
         # 11. Observed data
-        y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
+        y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=, dims="obs")
     ```
 
     **Example 2: Sigmoidal Response Model with Link Functions**
@@ -541,7 +541,7 @@ def pymc_generation_system():
     - Add appropriate units in column names if helpful (e.g., "concentration_uM", "time_hours")
 
     Key requirements:
-    1. Generate a `def model():` function template only - no data loading code
+    1. Generate a `def create_model():` function template only - no data loading code
     2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
     3. Create separate coefficients for each treatment level with proper dimensions
     4. Handle different factor types with appropriate priors
@@ -567,7 +567,7 @@ def pymc_generation_system():
 
 @lmb.prompt(role="system")
 def pymc_code_generation_system():
-    """You are an expert in Bayesian modeling with PyMC and the R2D2 framework.
+    r"""You are an expert in Bayesian modeling with PyMC and the R2D2 framework.
 
     Your task is to generate PEP 723 compliant PyMC model code based on a structured experiment description.
 
@@ -587,60 +587,190 @@ def pymc_code_generation_system():
 
     ### R2D2M2 Implementation Pattern (NO FOR-LOOPS):
 
-    **Example 1: Linear Response Model with Replicates**
+        **Example 1: Complete Linear Response Model with Replicates (Inference & Simulation Modes)**
+
     ```python
-    import pymc as pm
-    import numpy as np
-    import pytensor.tensor as pt
+    def create_model(df=None):
+        import pymc as pm
+        import numpy as np
+        import pandas as pd
 
-    with pm.Model(coords=coords) as model:
-        # 1. Measurement precision (unexplained variance)
-        sigma = pm.HalfNormal("sigma", sigma=1.0)
+        if df is not None:
+            # INFERENCE MODE: Extract coordinates and indices from dataframe
+            treatment_1_idx, treatment_1_levels = pd.factorize(df['treatment_1'])
+            treatment_2_idx, treatment_2_levels = pd.factorize(df['treatment_2'])
+            day_idx, day_levels = pd.factorize(df['day'])
+            operator_idx, operator_levels = pd.factorize(df['operator'])
 
-        # 2. Model fit quality (proportion of variation explained by experimental factors)
-        r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
+            n_obs = len(df)
+            observed_data = df['response']
+        else:
+            # SIMULATION MODE: Use default coordinates and indices
+            treatment_1_levels = ["control", "drug_A", "drug_B"]
+            treatment_2_levels = ["low", "high"]
+            day_levels = ["day_1", "day_2", "day_3"]
+            operator_levels = ["op_1", "op_2"]
 
-        # 3. Total experimental effect strength (signal-to-noise ratio)
-        model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
+            n_obs = 24  # Default number of observations for simulation
+            treatment_1_idx = np.zeros(n_obs, dtype=int)  # All default to first level
+            treatment_2_idx = np.zeros(n_obs, dtype=int)
+            day_idx = np.zeros(n_obs, dtype=int)
+            operator_idx = np.zeros(n_obs, dtype=int)
 
-        # 4. Total explainable variance
-        W = pm.Deterministic("W", model_snr * sigma**2)
+            observed_data = None
 
-        # 5. Variance proportions across components (treatment + nuisance factors)
-        # Example: [treatment_1, treatment_2, day_effects, operator_effects]
-        # Note: No replicate variance needed - replicates don't have systematic effects
-        phi = pm.Dirichlet("phi", a=np.array([70, 20, 5, 5]), dims="variance_components")  # Allocate among meaningful effects only
+        # Define coordinates
+        coords = {
+            "treatment_1": treatment_1_levels,
+            "treatment_2": treatment_2_levels,
+            "day": day_levels,
+            "operator": operator_levels,
+            "variance_components": ["treatment_1", "treatment_2", "day", "operator"],
+            "obs": np.arange(n_obs)
+        }
 
-        # 6. Individual variance components
-        treatment_1_variance = pm.Deterministic("treatment_1_variance", phi[0] * W)
-        treatment_2_variance = pm.Deterministic("treatment_2_variance", phi[1] * W)
-        day_variance = pm.Deterministic("day_variance", phi[2] * W)
-        operator_variance = pm.Deterministic("operator_variance", phi[3] * W)
+        with pm.Model(coords=coords) as model:
+            # 1. Measurement precision (unexplained variance)
+            sigma = pm.HalfNormal("sigma", sigma=1.0)
 
-        # 7. Individual treatment effects (explicit, no loops)
-        treatment_1_effect = pm.Normal("treatment_1_effect", mu=0, sigma=np.sqrt(treatment_1_variance), dims="treatment_1")
-        treatment_2_effect = pm.Normal("treatment_2_effect", mu=0, sigma=np.sqrt(treatment_2_variance), dims="treatment_2")
+            # 2. Model fit quality (proportion of variation explained by experimental factors)
+            r_squared = pm.Beta("r_squared", alpha=2, beta=2)  # Expect moderate fit
 
-        # 8. Nuisance factor effects
-        day_effects = pm.Normal("day_effects", mu=0, sigma=np.sqrt(day_variance), dims="day")
-        operator_effects = pm.Normal("operator_effects", mu=0, sigma=np.sqrt(operator_variance), dims="operator")
+            # 3. Total experimental effect strength (signal-to-noise ratio)
+            model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
 
-        # 9. Global intercept (always include)
-        mu = pm.Normal("mu", mu=0, sigma=10)
+            # 4. Total explainable variance
+            W = pm.Deterministic("W", model_snr * sigma**2)
 
-        # 10. Predicted response using broadcasting (no loops)
-        # Note: No replicate effect needed - replicates are just multiple observations
-        # of the same experimental conditions
-        predicted_response = (
-            mu +  # Global intercept
-            treatment_1_effect[treatment_1_idx] +
-            treatment_2_effect[treatment_2_idx] +
-            day_effects[day_idx] +
-            operator_effects[operator_idx]
-        )
+            # 5. Variance proportions across components (treatment + nuisance factors)
+            # Note: No replicate variance needed - replicates don't have systematic effects
+            phi = pm.Dirichlet("phi", a=np.array([70, 20, 5, 5]), dims="variance_components")
 
-        # 11. Observed data
-        y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
+            # 6. Individual variance components
+            treatment_1_variance = pm.Deterministic("treatment_1_variance", phi[0] * W)
+            treatment_2_variance = pm.Deterministic("treatment_2_variance", phi[1] * W)
+            day_variance = pm.Deterministic("day_variance", phi[2] * W)
+            operator_variance = pm.Deterministic("operator_variance", phi[3] * W)
+
+            # 7. Individual treatment effects (explicit, no loops)
+            treatment_1_effect = pm.Normal("treatment_1_effect", mu=0, sigma=np.sqrt(treatment_1_variance), dims="treatment_1")
+            treatment_2_effect = pm.Normal("treatment_2_effect", mu=0, sigma=np.sqrt(treatment_2_variance), dims="treatment_2")
+
+            # 8. Nuisance factor effects
+            day_effects = pm.Normal("day_effects", mu=0, sigma=np.sqrt(day_variance), dims="day")
+            operator_effects = pm.Normal("operator_effects", mu=0, sigma=np.sqrt(operator_variance), dims="operator")
+
+            # 9. Global intercept (always include)
+            mu = pm.Normal("mu", mu=0, sigma=10)
+
+            # 10. Predicted response using broadcasting (no loops)
+            # Use provided indices or default to first level for simulation
+            t1_idx = treatment_1_idx if treatment_1_idx is not None else np.zeros(coords["obs"].shape[0], dtype=int)
+            t2_idx = treatment_2_idx if treatment_2_idx is not None else np.zeros(coords["obs"].shape[0], dtype=int)
+            d_idx = day_idx if day_idx is not None else np.zeros(coords["obs"].shape[0], dtype=int)
+            o_idx = operator_idx if operator_idx is not None else np.zeros(coords["obs"].shape[0], dtype=int)
+
+            predicted_response = (
+                mu +  # Global intercept
+                treatment_1_effect[t1_idx] +
+                treatment_2_effect[t2_idx] +
+                day_effects[d_idx] +
+                operator_effects[o_idx]
+            )
+
+            # 11. Observed data (works in both inference and simulation modes)
+            y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=observed_data, dims="obs")
+
+        return model
+
+    # USAGE EXAMPLES:
+
+    # INFERENCE MODE: Fit model to observed data
+    # model_inference = create_model(df)
+    # with model_inference:
+    #     trace = pm.sample(1000, tune=1000, return_inferencedata=True)
+
+    # SIMULATION MODE: Generate synthetic data
+    # model_simulation = create_model(df=None)
+    # with model_simulation:
+    #     prior_predictive = pm.sample_prior_predictive(samples=1000)
+    ```
+
+    **Example 2: Nonlinear Sigmoidal Response Model (Inference & Simulation Modes)**
+
+    ```python
+    def create_model(df=None):
+        import pymc as pm
+        import numpy as np
+        import pytensor.tensor as pt
+
+        if df is not None:
+            # INFERENCE MODE: Extract concentrations from dataframe
+            concentrations = df['concentration'].values
+            observed_data = df['response']
+            n_obs = len(df)
+        else:
+            # SIMULATION MODE: Use default concentrations
+            concentrations = np.logspace(-3, 1, 10)  # 0.001 to 10 μM
+            observed_data = None
+            n_obs = len(concentrations)
+
+        # Define coordinates
+        coords = {
+            "obs": np.arange(n_obs)
+        }
+
+        with pm.Model(coords=coords) as model:
+            # 1. Measurement precision
+            sigma = pm.HalfNormal("sigma", sigma=1.0)
+
+            # 2. Model fit quality
+            r_squared = pm.Beta("r_squared", alpha=2, beta=2)
+
+            # 3. Total experimental effect strength
+            model_snr = pm.Deterministic("model_snr", r_squared / (1 - r_squared))
+
+            # 4. Total explainable variance
+            W = pm.Deterministic("W", model_snr * sigma**2)
+
+            # 5. Sigmoidal curve parameters (in log space for positivity)
+            log_ec50 = pm.Normal("log_ec50", mu=np.log(0.1), sigma=1.0)  # EC50 around 0.1 μM
+            log_hill = pm.Normal("log_hill", mu=np.log(1.0), sigma=0.5)  # Hill coefficient around 1
+            log_max_response = pm.Normal("log_max_response", mu=np.log(100), sigma=1.0)  # Max response around 100
+
+            # Transform to original scale
+            ec50 = pm.Deterministic("ec50", pt.exp(log_ec50))
+            hill = pm.Deterministic("hill", pt.exp(log_hill))
+            max_response = pm.Deterministic("max_response", pt.exp(log_max_response))
+
+            # 6. Baseline response
+            baseline = pm.Normal("baseline", mu=0, sigma=10)
+
+            # 7. Sigmoidal response function
+            # y = baseline + max_response / (1 + (EC50/conc)^hill)
+            concentration_effect = pm.Deterministic(
+                "concentration_effect",
+                max_response / (1 + pt.power(ec50 / concentrations, hill))
+            )
+
+            predicted_response = baseline + concentration_effect
+
+            # 8. Observed data (works in both inference and simulation modes)
+            y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=observed, dims="obs")
+
+        return model
+
+    # USAGE EXAMPLES:
+
+    # INFERENCE MODE: Fit model to observed data
+    # model_inference = create_model(df)
+    # with model_inference:
+    #     trace = pm.sample(1000, tune=1000, return_inferencedata=True)
+
+    # SIMULATION MODE: Generate synthetic data
+    # model_simulation = create_model(df=None)
+    # with model_simulation:
+    #     prior_predictive = pm.sample_prior_predictive(samples=1000)
     ```
 
     ### Factor Type Guidelines:
@@ -742,10 +872,15 @@ def pymc_code_generation_system():
 
      **TEMPLATE: Generate only the model function**
      ```python
-     def model():
+     def create_model():
          \"\"\"PyMC model for [experiment_name].\"\"\"
+         import pymc as pm
 
-         # Assume coords dictionary and indexing variables are already available
+         # Define coords here
+         coords = {...}
+
+         # Define observed data
+         observed = None # if no data are available, set to None
 
          with pm.Model(coords=coords) as model:
              # 1. Measurement precision (unexplained variance)
@@ -772,14 +907,14 @@ def pymc_code_generation_system():
              # Predicted response
              predicted_response = (...)  # Define based on experiment
 
-             # Observed data (assume y_data and obs dimension already available)
-             y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=y_data, dims="obs")
+             # Observed data
+             y = pm.Normal("y", mu=predicted_response, sigma=sigma, observed=observed, dims="obs")
 
          return model
      ```
 
     Key requirements:
-    1. Generate a `def model():` function template only - no data loading code
+    1. Generate a `def create_model():` function template only - no data loading code
     2. Use R2D2M2 framework with explicit individual coefficients (NO FOR-LOOPS)
     3. Create separate coefficients for each treatment level with proper dimensions
     4. Handle different factor types with appropriate priors
@@ -954,7 +1089,7 @@ def generate_pymc_code_prompt(experiment_json: str):
     Experiment Description (JSON):
     {{ experiment_json }}
 
-    Please generate a `def model():` function that:
+    Please generate a `def create_model():` function that:
     - Sets up appropriate coordinates and dimensions
     - Implements the R2D2 framework based on the experiment structure
     - Handles all factor types correctly
