@@ -29,6 +29,27 @@ pytest tests/          # Run tests directly (if in activated environment)
 pixi run lint          # Run pre-commit hooks on all files
 ```
 
+**Marimo Notebook Validation**:
+
+For any changes to marimo notebooks (notebooks/*.py files), always run:
+
+```bash
+uvx marimo check /path/to/notebook.py
+```
+
+**Important**: If marimo check finds issues, always fix them immediately.
+Common issues include:
+
+- Empty cells that can be removed (containing only whitespace, comments, or pass)
+- Unused imports or variables
+- Code quality issues
+
+**Documentation Guidelines**:
+
+- Do not write "recent fixes" or "changes made" into AGENTS.md
+- Keep documentation focused on guidelines and best practices
+- Avoid including historical change logs or specific fixes applied
+
 **Documentation**:
 
 ```bash
